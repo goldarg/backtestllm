@@ -1,8 +1,6 @@
-using api.data;
-using api.Data;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http;
+using api.DataAccess;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,12 +17,13 @@ builder.Services.AddHttpClient("CrmHttpClient", httpClient =>
 {
     httpClient.BaseAddress = new Uri("https://www.zohoapis.com/");
 
-    httpClient.DefaultRequestHeaders.Authorization = 
+    httpClient.DefaultRequestHeaders.Authorization =
         new System.Net.Http.Headers.AuthenticationHeaderValue(
-            "Bearer", AccessTokenHandler.Instance.accessToken);
+            "Bearer", AccessTokenHandler.Instance.AccessToken);
 });
 
-builder.Services.AddDbContext<RdaDbContext>(options => {
+builder.Services.AddDbContext<RdaDbContext>(options =>
+{
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 

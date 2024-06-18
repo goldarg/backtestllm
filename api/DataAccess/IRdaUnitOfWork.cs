@@ -1,18 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+namespace api.DataAccess;
 
-namespace api.Data
+public interface IRdaUnitOfWork
 {
-    public interface IRdaUnitOfWork
-    {
-        void SaveChanges();
+    void SaveChanges();
 
-        IRepository<TEntity> GetRepository<TEntity>() where TEntity : class;
+    IRepository<TEntity> GetRepository<TEntity>() where TEntity : class;
 
-        void Dispose();
+    void Dispose();
 
-        RdaDbContext DbContext { get; }
-    }
+    RdaDbContext DbContext { get; }
 }

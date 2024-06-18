@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+namespace api.DataAccess;
 
-namespace api.Data
+public interface IRepositoryFactory
 {
-    public interface IRepositoryFactory
-    {
-        IRepository<TEntity> CreateRepository<TEntity>() where TEntity : class;
-    }
+    IRepository<TEntity> CreateRepository<TEntity>() where TEntity : class;
 }
