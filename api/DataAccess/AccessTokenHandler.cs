@@ -1,29 +1,25 @@
 using Newtonsoft.Json;
 
-namespace api.data;
+namespace api.DataAccess;
 
 public class AccessTokenHandler : DelegatingHandler
 {
-    private static readonly object oLock = new object();
-    private static AccessTokenHandler instance = null;
-    private DateTime? tokenExpiry;
-    public string? accessToken;
+    private static readonly object OLock = new();
+    private static AccessTokenHandler? _instance;
+    private DateTime? _tokenExpiry;
+    public string? AccessToken;
 
     public static AccessTokenHandler Instance
     {
         get
         {
-            lock (oLock)
+            lock (OLock)
             {
-                if (instance == null)
-                    instance = new AccessTokenHandler();
+                _instance ??= new AccessTokenHandler();
 
-                if (instance.tokenExpiry == null || instance.tokenExpiry <= DateTime.Now)
-                {
-                    UpdateAccessToken();
-                }
+                if (_instance._tokenExpiry == null || _instance._tokenExpiry <= DateTime.Now) UpdateAccessToken();
 
-                return instance;
+                return _instance;
             }
         }
     }
@@ -46,11 +42,13 @@ public class AccessTokenHandler : DelegatingHandler
 
         var response = client.PostAsync("oauth/v2/token", addMe).Result;
         var json = response.Content.ReadAsStringAsync().Result;
-        
-        dynamic result = JsonConvert.DeserializeObject(json);
+
+        dynamic result = JsonConvert.DeserializeObject(json) ??
+                         throw new InvalidOperationException("fallo al deserealizar token");
         var accessToken = result["access_token"].Value;
 
-        instance.accessToken = accessToken;
-        instance.tokenExpiry = DateTime.Now.AddMinutes(50); //Margen de 10 minutos
+        if (_instance == null) return;
+        _instance.AccessToken = accessToken;
+        _instance._tokenExpiry = DateTime.Now.AddMinutes(50); //Margen de 10 minutos
     }
 }

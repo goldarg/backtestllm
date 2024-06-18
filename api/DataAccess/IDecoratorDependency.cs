@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+namespace api.DataAccess;
 
-namespace api.Data
+public interface IDecoratorDependency<out TService> where TService : class
 {
-    public interface IDecoratorDependency<out TService> where TService : class
-    {
-        TService InnerService { get; }
-    }
+    TService InnerService { get; }
 }

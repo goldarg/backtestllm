@@ -1,12 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+namespace api.DataAccess;
 
-namespace api.Data
+public class ServiceConfigurator
 {
-    public class ServiceConfigurator
-    {
-        
-    }
 }

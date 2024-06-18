@@ -1,21 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+namespace api.DataAccess;
 
-namespace api.Data
+public class RepositoryFactory : IRepositoryFactory
 {
-    public class RepositoryFactory : IRepositoryFactory
+    private readonly IServiceProvider _serviceProvider;
+
+    public RepositoryFactory(IServiceProvider serviceProvider)
     {
-        private readonly IServiceProvider _serviceProvider;
+        _serviceProvider = serviceProvider;
+    }
 
-        public RepositoryFactory (IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
-
-        public IRepository<TEntity> CreateRepository<TEntity>() where TEntity : class =>
-            _serviceProvider.GetRequiredService<IRepository<TEntity>>();
+    public IRepository<TEntity> CreateRepository<TEntity>() where TEntity : class
+    {
+        return _serviceProvider.GetRequiredService<IRepository<TEntity>>();
     }
 }
