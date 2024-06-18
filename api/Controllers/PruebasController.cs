@@ -29,6 +29,108 @@ namespace api.Controllers
             return Ok(test);
         }
 
+        [HttpGet("GetVehiculos")]
+        public IActionResult GetVehiculos()
+        {
+            var jsonArray = new JArray
+            {
+                new JObject
+                {
+                    { "name", "John Doe" },
+                    { "age", 30 },
+                    { "email", "john.doe@example.com" },
+                    { "isVerified", true },
+                    { "balance", 1234.56 },
+                    { "asignado", 1 }
+                },
+                new JObject
+                {
+                    { "name", "Jane Smith" },
+                    { "age", 25 },
+                    { "email", "jane.smith@example.com" },
+                    { "isVerified", false },
+                    { "balance", 567.89 },
+                    { "asignado", 0 }
+                },
+                new JObject
+                {
+                    { "name", "Alice Johnson" },
+                    { "age", 28 },
+                    { "email", "alice.johnson@example.com" },
+                    { "isVerified", true },
+                    { "balance", 2345.67 },
+                    { "asignado", 1 }
+                },
+                new JObject
+                {
+                    { "name", "Robert Brown" },
+                    { "age", 32 },
+                    { "email", "robert.brown@example.com" },
+                    { "isVerified", false },
+                    { "balance", 789.01 },
+                    { "asignado", 0 }
+                },
+                new JObject
+                {
+                    { "name", "Emily Davis" },
+                    { "age", 27 },
+                    { "email", "emily.davis@example.com" },
+                    { "isVerified", true },
+                    { "balance", 234.56 },
+                    { "asignado", 1 }
+                },
+                new JObject
+                {
+                    { "name", "Michael Wilson" },
+                    { "age", 35 },
+                    { "email", "michael.wilson@example.com" },
+                    { "isVerified", false },
+                    { "balance", 4567.89 },
+                    { "asignado", 0 }
+                },
+                new JObject
+                {
+                    { "name", "Sarah Lee" },
+                    { "age", 24 },
+                    { "email", "sarah.lee@example.com" },
+                    { "isVerified", true },
+                    { "balance", 123.45 },
+                    { "asignado", 1 }
+                },
+                new JObject
+                {
+                    { "name", "David Clark" },
+                    { "age", 29 },
+                    { "email", "david.clark@example.com" },
+                    { "isVerified", false },
+                    { "balance", 678.90 },
+                    { "asignado", 0 }
+                },
+                new JObject
+                {
+                    { "name", "Laura Martinez" },
+                    { "age", 26 },
+                    { "email", "laura.martinez@example.com" },
+                    { "isVerified", true },
+                    { "balance", 345.67 },
+                    { "asignado", 1 }
+                },
+                new JObject
+                {
+                    { "name", "Chris Taylor" },
+                    { "age", 31 },
+                    { "email", "chris.taylor@example.com" },
+                    { "isVerified", false },
+                    { "balance", 890.12 },
+                    { "asignado", 0 }
+                }
+            };
+
+            string jsonString = JsonConvert.SerializeObject(jsonArray, Formatting.Indented);
+
+            return Ok(jsonString);
+        }
+
         [HttpGet("MetodoPrueba")]
         public IActionResult MetodoPrueba()
         {
