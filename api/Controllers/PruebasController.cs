@@ -28,106 +28,38 @@ public class PruebasController : ControllerBase
         return Ok(test);
     }
 
-    [HttpGet("GetVehiculos")]
-    public IActionResult GetVehiculos()
+    public class Vehiculo
     {
-        var jsonArray = new JArray
+        public string Codigo { get; set; } = string.Empty;
+        public string Marca { get; set; } = string.Empty;
+        public bool Asignado { get; init; }
+    }
+
+    [HttpGet("GetVehiculos")]
+    public IActionResult GetVehiculos(string filter = "all")
+    {
+        var vehiculos = new List<Vehiculo>
         {
-            new JObject
-            {
-                { "name", "John Doe" },
-                { "age", 30 },
-                { "email", "john.doe@example.com" },
-                { "isVerified", true },
-                { "balance", 1234.56 },
-                { "asignado", 1 }
-            },
-            new JObject
-            {
-                { "name", "Jane Smith" },
-                { "age", 25 },
-                { "email", "jane.smith@example.com" },
-                { "isVerified", false },
-                { "balance", 567.89 },
-                { "asignado", 0 }
-            },
-            new JObject
-            {
-                { "name", "Alice Johnson" },
-                { "age", 28 },
-                { "email", "alice.johnson@example.com" },
-                { "isVerified", true },
-                { "balance", 2345.67 },
-                { "asignado", 1 }
-            },
-            new JObject
-            {
-                { "name", "Robert Brown" },
-                { "age", 32 },
-                { "email", "robert.brown@example.com" },
-                { "isVerified", false },
-                { "balance", 789.01 },
-                { "asignado", 0 }
-            },
-            new JObject
-            {
-                { "name", "Emily Davis" },
-                { "age", 27 },
-                { "email", "emily.davis@example.com" },
-                { "isVerified", true },
-                { "balance", 234.56 },
-                { "asignado", 1 }
-            },
-            new JObject
-            {
-                { "name", "Michael Wilson" },
-                { "age", 35 },
-                { "email", "michael.wilson@example.com" },
-                { "isVerified", false },
-                { "balance", 4567.89 },
-                { "asignado", 0 }
-            },
-            new JObject
-            {
-                { "name", "Sarah Lee" },
-                { "age", 24 },
-                { "email", "sarah.lee@example.com" },
-                { "isVerified", true },
-                { "balance", 123.45 },
-                { "asignado", 1 }
-            },
-            new JObject
-            {
-                { "name", "David Clark" },
-                { "age", 29 },
-                { "email", "david.clark@example.com" },
-                { "isVerified", false },
-                { "balance", 678.90 },
-                { "asignado", 0 }
-            },
-            new JObject
-            {
-                { "name", "Laura Martinez" },
-                { "age", 26 },
-                { "email", "laura.martinez@example.com" },
-                { "isVerified", true },
-                { "balance", 345.67 },
-                { "asignado", 1 }
-            },
-            new JObject
-            {
-                { "name", "Chris Taylor" },
-                { "age", 31 },
-                { "email", "chris.taylor@example.com" },
-                { "isVerified", false },
-                { "balance", 890.12 },
-                { "asignado", 0 }
-            }
+            new() { Codigo = "ABC123", Marca = "Toyota", Asignado = true },
+            new() { Codigo = "XYZ789", Marca = "Ford", Asignado = false },
+            new() { Codigo = "LMN456", Marca = "Honda", Asignado = true },
+            new() { Codigo = "JKL321", Marca = "Nissan", Asignado = false },
+            new() { Codigo = "QWE987", Marca = "BMW", Asignado = true },
+            new() { Codigo = "RTY654", Marca = "Audi", Asignado = false },
+            new() { Codigo = "UIO852", Marca = "Mercedes", Asignado = true },
+            new() { Codigo = "GHJ369", Marca = "Chevrolet", Asignado = false },
+            new() { Codigo = "ASD741", Marca = "Kia", Asignado = true },
+            new() { Codigo = "ZXC159", Marca = "Mazda", Asignado = false },
+            new() { Codigo = "VBN753", Marca = "Subaru", Asignado = true },
+            new() { Codigo = "POI456", Marca = "Volkswagen", Asignado = false },
+            new() { Codigo = "MNB951", Marca = "Hyundai", Asignado = true }
         };
 
-        var jsonString = JsonConvert.SerializeObject(jsonArray, Formatting.Indented);
+        if (filter == "assigned")
+            vehiculos = vehiculos.Where(v => v.Asignado).ToList();
+        else if (filter == "unassigned") vehiculos = vehiculos.Where(v => !v.Asignado).ToList();
 
-        return Ok(jsonString);
+        return Ok(vehiculos);
     }
 
     [HttpGet("MetodoPrueba")]
