@@ -1,34 +1,54 @@
-# ASP.NET Core (.NET Framework)
-# Build and test ASP.NET Core projects targeting the full .NET Framework.
-# Add steps that publish symbols, save build artifacts, and more:
+# ASP.NET Core
+# Build and test ASP.NET Core projects targeting .NET Core.
+# Add steps that run tests, create a NuGet package, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- master
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - Flota
 
-pool:
-  vmImage: 'windows-latest'
+stages:
+  - stage: "Build"
+    displayName: "Build api server"
+    jobs:
+      - job: "Build"
+        pool:
+          vmImage: "windows-latest"
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
+        variables:
+          - name: NUGET.PLUGIN.HANDSHAKE.TIMEOUT.IN.SECONDS
+            value: 60
+          - name: NUGET.PLUGIN.REQUEST.TIMEOUT.IN.SECONDS
+            value: 60
+          - name: buildConfiguration
+            value: "Release"
 
-steps:
-- task: NuGetToolInstaller@1
+        steps:
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+          - task: NuGetAuthenticate@1
 
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+          - task: DotNetCoreCLI@2
+            displayName: "Build"
+            inputs:
+              command: "build"
+              projects: "Flota/api/*.csproj"
+              arguments: "--configuration $(BuildConfiguration)"
 
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+          - task: DotNetCoreCLI@2
+            displayName: "Publish project"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              projects: "Flota/api/*.csproj"
+              arguments: "--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)"
+              modifyOutputPath: false
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload artifacts"
+            inputs:
+              PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+              ArtifactName: "drop"
+              publishLocation: "Container"
