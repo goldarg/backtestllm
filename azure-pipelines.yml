@@ -35,7 +35,7 @@ stages:
             displayName: "Build"
             inputs:
               command: "build"
-              projects: "Flota/api/*.csproj"
+              projects: "**/*.csproj"
               arguments: "--configuration $(BuildConfiguration)"
 
           - task: DotNetCoreCLI@2
@@ -43,9 +43,10 @@ stages:
             inputs:
               command: "publish"
               publishWebProjects: false
-              projects: "Flota/api/*.csproj"
+              projects: "**/*.csproj"
               arguments: "--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)"
               modifyOutputPath: false
+
           - task: PublishBuildArtifacts@1
             displayName: "Upload artifacts"
             inputs:
