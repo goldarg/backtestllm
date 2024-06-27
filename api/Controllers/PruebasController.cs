@@ -95,7 +95,7 @@ public class PruebasController : ControllerBase
 
         var jsonString = JsonConvert.SerializeObject(jsonArray, Formatting.Indented);
 
-        // Print the JSON string
+        // Print the JSON as string
         return Ok(jsonString);
     }
 
