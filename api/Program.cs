@@ -11,7 +11,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<AccessTokenHandler>();
-// builder.Services.AddHttpClient("TokenHandler")
 
 builder.Services.AddHttpClient("CrmHttpClient", httpClient =>
 {

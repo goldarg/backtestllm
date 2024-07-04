@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
-[Route("api/stock")]
+[Route("api/empresas")]
 [ApiController]
-public class StockController : ControllerBase
+public class EmpresasController : ControllerBase
 {
     private readonly IRdaUnitOfWork _unitOfWork;
 
-    public StockController(IRdaUnitOfWork unitOfWork)
+    public EmpresasController(IRdaUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
@@ -18,20 +18,20 @@ public class StockController : ControllerBase
     [HttpGet]
     public IActionResult GetAll()
     {
-        var stocks = _unitOfWork.GetRepository<Stock>().GetAll()
+        var empresas = _unitOfWork.GetRepository<Empresa>().GetAll()
             .ToList();
 
-        return Ok(stocks);
+        return Ok(empresas);
     }
 
     [HttpGet("{id}")]
     public IActionResult GetById([FromRoute] int id)
     {
-        var stock = _unitOfWork.GetRepository<Stock>().GetById(id);
+        var empresa = _unitOfWork.GetRepository<Empresa>().GetById(id);
 
-        if (stock == null)
+        if (empresa == null)
             return NotFound();
 
-        return Ok(stock);
+        return Ok(empresa);
     }
 }
