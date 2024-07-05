@@ -10,7 +10,7 @@ namespace api.DataAccess.Configurators
 {
     public class RolesConfigurator
     {
-        public void ConfigureEntity(EntityTypeBuilder<Rol> builder)
+        public void Configure(EntityTypeBuilder<Rol> builder)
         {
             builder.ToTable("Roles");
             builder.HasKey(x => x.id);

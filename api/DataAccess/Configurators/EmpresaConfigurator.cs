@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace api.DataAccess.Configurators
 {
-    public class EmpresaConfigurator
+    public class EmpresaConfigurator : IEntityTypeConfiguration<Empresa>
     {
-        public void ConfigureEntity(EntityTypeBuilder<Empresa> builder)
+        public void Configure(EntityTypeBuilder<Empresa> builder)
         {
             builder.ToTable("Empresas");
             builder.HasKey(x => x.id);

@@ -11,7 +11,7 @@ namespace api.DataAccess.Configurators
 {
     public class UserConfigurator
     {
-        public void ConfigureEntity(EntityTypeBuilder<User> builder)
+        public void Configure(EntityTypeBuilder<User> builder)
         {
             builder.ToTable("Users");
             builder.HasKey(x => x.id);
@@ -24,7 +24,7 @@ namespace api.DataAccess.Configurators
             builder.Property(x => x.empresaId).IsRequired().HasColumnName("empresaId").HasColumnType("int");
             builder.Property(x => x.guid).IsRequired().HasColumnName("guid").HasColumnType("uniqueidentifier").IsRequired();
 
-            builder.HasOne(x => x.Empresa).WithMany(q => q.Usuarios).HasForeignKey(w => w.empresaId);
+            builder.HasOne(x => x.Empresa).WithMany(q => q.Usuarios).HasForeignKey(w => w.empresaId).OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 }

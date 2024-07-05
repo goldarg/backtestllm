@@ -10,7 +10,7 @@ namespace api.DataAccess.Configurators
 {
     public class UsuariosRolesConfiguration
     {
-        public void ConfigureEntity(EntityTypeBuilder<UsuariosRoles> builder)
+        public void Configure(EntityTypeBuilder<UsuariosRoles> builder)
         {
             builder.ToTable("UsuariosRoles");
             builder.HasKey(x => x.id);
@@ -19,8 +19,8 @@ namespace api.DataAccess.Configurators
             builder.Property(x => x.userId).IsRequired().HasColumnName("userId").HasColumnType("int");
             builder.Property(x => x.rolId).IsRequired().HasColumnName("rolId").HasColumnType("int");
 
-            builder.HasOne(x => x.Rol).WithMany(w => w.Asignaciones).HasForeignKey(q => q.rolId);
-            builder.HasOne(x => x.User).WithMany(w => w.Roles).HasForeignKey(z => z.userId);
+            builder.HasOne(x => x.Rol).WithMany(w => w.Asignaciones).HasForeignKey(q => q.rolId).OnDelete(DeleteBehavior.ClientSetNull);
+            builder.HasOne(x => x.User).WithMany(w => w.Roles).HasForeignKey(z => z.userId).OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 }
