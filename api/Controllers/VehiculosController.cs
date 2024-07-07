@@ -43,7 +43,7 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpPost("{id}/AsignarConductor")]
-    public async Task<IActionResult> AsignarConductor(int id, [FromBody] string conductor)
+    public async Task<IActionResult> AsignarConductor(int id, [FromQuery] string conductor)
     {
         var jsonContent = JsonSerializer.Serialize(new { conductor = conductor }, new JsonSerializerOptions
         {
