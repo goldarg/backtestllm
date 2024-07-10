@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
-[Route("api/comments")]
+[Route("api/usuariosRoles")]
 [ApiController]
-public class CommentsController : ControllerBase
+public class UsuariosRolesController : ControllerBase
 {
     private readonly IRdaUnitOfWork _unitOfWork;
 
-    public CommentsController(IRdaUnitOfWork unitOfWork)
+    public UsuariosRolesController(IRdaUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
@@ -18,19 +18,19 @@ public class CommentsController : ControllerBase
     [HttpGet]
     public IActionResult GetAll()
     {
-        var comment = _unitOfWork.GetRepository<Comment>().GetAll()
+        var usuariosPermisos = _unitOfWork.GetRepository<UsuariosRoles>().GetAll()
             .ToList();
-        return Ok(comment);
+        return Ok(usuariosPermisos);
     }
 
     [HttpGet("{id}")]
     public IActionResult GetById([FromRoute] int id)
     {
-        var comment = _unitOfWork.GetRepository<Comment>().GetById(id);
+        var usuariosPermisos = _unitOfWork.GetRepository<UsuariosRoles>().GetById(id);
 
-        if (comment == null)
+        if (usuariosPermisos == null)
             return NotFound();
 
-        return Ok(comment);
+        return Ok(usuariosPermisos);
     }
 }

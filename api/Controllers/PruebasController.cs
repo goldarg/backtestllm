@@ -22,8 +22,7 @@ public class PruebasController : ControllerBase
     [HttpGet("{id}")]
     public IActionResult PruebaUnitOfWork([FromRoute] int id)
     {
-        var test = _unitOfWork.GetRepository<Comment>().GetAll()
-            .Select(x => x.Stock).ToList();
+        var test = _unitOfWork.GetRepository<User>().GetAll().ToList();
 
         return Ok(test);
     }
