@@ -21,10 +21,8 @@ namespace api.DataAccess.Configurators
             builder.Property(x => x.nombre).IsRequired().HasColumnName("nombre").HasColumnType("nvarhar").HasMaxLength(100);
             builder.Property(x => x.apellido).IsRequired().HasColumnName("apellido").HasColumnType("nvarhar").HasMaxLength(100);
             builder.Property(x => x.activo).IsRequired().HasColumnName("activo").HasColumnType("bit").HasDefaultValue(1);
-            builder.Property(x => x.empresaId).IsRequired().HasColumnName("empresaId").HasColumnType("int");
             builder.Property(x => x.guid).IsRequired().HasColumnName("guid").HasColumnType("uniqueidentifier").IsRequired();
-
-            builder.HasOne(x => x.Empresa).WithMany(q => q.Usuarios).HasForeignKey(w => w.empresaId).OnDelete(DeleteBehavior.ClientSetNull);
+            builder.Property(x => x.isRDA).IsRequired().HasColumnName("guid").HasColumnType("bit").HasDefaultValue(1);
         }
     }
 }

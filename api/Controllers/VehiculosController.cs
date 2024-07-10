@@ -20,6 +20,20 @@ public class VehiculosController : ControllerBase
         _httpClientFactory = httpClientFactory;
     }
     
+    [HttpPost]
+    public IActionResult AsignarVehiculo()
+    {
+        var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+        var uri = new StringBuilder("crm/v2/Contacts");
+        //Para el primer MVP solo usamos contactos existentes en el CRM
+        // if (user.isRDA)
+        // {
+
+        // }
+
+        return Ok();
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetVehiculos()
     {
@@ -43,16 +57,8 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpPost("{id}/AsignarConductor")]
-    public async Task<IActionResult> AsignarConductor(int id, [FromQuery] string conductor)
+    public async Task<IActionResult> AsignarConductor(int vehiculoId, [FromBody] int userId)
     {
-        var jsonContent = JsonSerializer.Serialize(new { conductor = conductor }, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        });
-
-        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
         // Deberiamos consultar en que tabla se relacionan los conductores y los vehiculos.
@@ -62,28 +68,6 @@ public class VehiculosController : ControllerBase
 
         return Ok();
     }
-
-    // Segun funcional estos ep no son necesarios. Los dejo comentado porque el discovery decia algo diferente.
-
-    // [HttpPost("ActualizarVehiculo")]
-    // public IActionResult ActualizarVehiculo([FromRoute] int id, [FromBody] VehiculoDto vehiculo)
-    // {
-    //     //TDDO pueden modificar cualquier campo? Qué campos si y qué campos no? Son todos los del CRM?
-
-    //     var jsonContent = JsonSerializer.Serialize(vehiculo, new JsonSerializerOptions
-    //     {
-    //         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    //         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-    //     });
-
-    //     var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-    //     var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
-
-    //     var response = httpClient.PatchAsync("crm/v2/Vehiculos/" + id, content).Result;
-
-    //     return Ok();
-    // }
 
     // [HttpDelete("EliminarVehiculo")] 
     // public void EliminarVehiculo([FromRoute] int id)

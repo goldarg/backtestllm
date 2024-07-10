@@ -12,5 +12,6 @@ namespace api.Models.Entities
         public string? codigo { get; set; }
         public Guid guid { get; set;}
         public ICollection<User>? Usuarios { get; set; }
+        public ICollection<UsuariosEmpresas>? Asignaciones { get; set; }
     }
 }
