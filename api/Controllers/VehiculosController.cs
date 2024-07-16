@@ -66,6 +66,29 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpGet]
+    public async Task<IActionResult> PruebaGetVehiculos()
+    {
+        var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+
+        var uri = new StringBuilder("crm/v2/Vehiculos");
+        uri.Append("?fields=id,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta,"+
+            "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego,"+
+            "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde");
+
+        var response = await httpClient.GetAsync(uri.ToString());
+        var json = await response.Content.ReadAsStringAsync();
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
+        var vehiculos = JsonSerializer.Deserialize<VehiculoResponse>(json, options);
+
+        return Ok(vehiculos);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> GetVehiculos()
     {
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
