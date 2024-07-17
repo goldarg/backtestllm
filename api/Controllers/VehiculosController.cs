@@ -73,7 +73,7 @@ public class VehiculosController : ControllerBase
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
         var uri = new StringBuilder("crm/v2/Vehiculos");
-        uri.Append("?fields=id,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta,"+
+        uri.Append("?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta,"+
             "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego,"+
             "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde");
 
