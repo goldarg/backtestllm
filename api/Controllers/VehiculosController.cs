@@ -68,7 +68,6 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpGet]
-    [Route("Vehiculos/Prueba")]
     public async Task<IActionResult> PruebaGetVehiculos()
     {
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
@@ -85,6 +84,7 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpGet]
+    [Route("Vehiculos/Prueba")] // TODO: Convertir este EP en el GET genérico.
     public async Task<IActionResult> GetVehiculos()
     {
         // TODO: Filtrar los contratos segun el rol del usuario.
