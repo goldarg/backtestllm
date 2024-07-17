@@ -18,6 +18,7 @@ namespace api.Models.DTO
     public class VehiculoDto
     {
         public string id { get; set; }
+        public string Name { get; set; }
         public string? Estado { get; set; }
         public string? Marca_Vehiculo { get; set; }
         public string? Modelo { get; set; }

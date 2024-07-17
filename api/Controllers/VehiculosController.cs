@@ -27,21 +27,21 @@ public class VehiculosController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<IActionResult> AsignarVehiculo([FromBody]int contratoId, [FromBody]int usuarioId, [FromBody]string tipoContrato)
+    public async Task<IActionResult> AsignarVehiculo([FromBody]AsignarVehiculoDto dto)
     {
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
         //Busco y actualizo según el tipo de contrato
         string targetModule;
-        if (tipoContrato == "Fleet Management")
-            tipoContrato = "Servicios_RDA";
-        else if (tipoContrato== "Renting")
-            tipoContrato = "Renting";
-        else if (tipoContrato == "Alquiler Corporativo")
-            tipoContrato = "Alquileres";
+        if (dto.tipoContrato == "Fleet Management")
+            dto.tipoContrato = "Servicios_RDA";
+        else if (dto.tipoContrato== "Renting")
+            dto.tipoContrato = "Renting";
+        else if (dto.tipoContrato == "Alquiler Corporativo")
+            dto.tipoContrato = "Alquileres";
         else throw new Exception("No se pudo determinar el tipo de contrato del vehículo");
 
-        var uri = new StringBuilder($"crm/v2/{tipoContrato}/upsert");
+        var uri = new StringBuilder($"crm/v2/{dto.tipoContrato}/upsert");
 
         //Armo el objeto para enviar al CRM, y devuelvo la respuesta
         var jsonObject = new
@@ -50,10 +50,10 @@ public class VehiculosController : ControllerBase
             {
                 new
                 {
-                    id = contratoId,
+                    id = dto.contratoId,
                     Conductor = new
                     {
-                        id = usuarioId
+                        id = dto.usuarioId
                     }
                 }
             }
@@ -89,6 +89,7 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpGet]
+    [Route("Vehiculos/definirNombre")]
     public async Task<IActionResult> GetVehiculos()
     {
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
@@ -98,7 +99,7 @@ public class VehiculosController : ControllerBase
         // TODO: Filtrar los contratos segun el rol del usuario.
 
         //Get a Vehiculos con los datos que necesito
-        uri.Append("?fields=id,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta,"+
+        uri.Append("?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta,"+
             "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego,"+
             "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde");
 
