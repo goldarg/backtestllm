@@ -1,3 +1,4 @@
+using api.Connected_Services;
 using api.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +30,7 @@ builder.Services.AddDbContext<RdaDbContext>(options =>
 builder.Services.AddScoped<IRdaUnitOfWork, RdaUnitOfWork>();
 builder.Services.AddScoped<IRepositoryFactory, RepositoryFactory>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<CRMService>();
 
 
 var app = builder.Build();
