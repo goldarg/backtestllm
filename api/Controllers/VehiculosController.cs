@@ -29,6 +29,7 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpPost]
+    [Route("AsignarVehiculo")]
     public async Task<IActionResult> AsignarVehiculo([FromBody] AsignarVehiculoRequest asignarVehiculoRequest)
     {
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
