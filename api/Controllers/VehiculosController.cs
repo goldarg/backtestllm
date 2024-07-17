@@ -68,23 +68,6 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> PruebaGetVehiculos()
-    {
-        var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
-
-        var uri = new StringBuilder("crm/v2/Vehiculos");
-        uri.Append("?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta,"+
-            "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego,"+
-            "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde,Fecha_siguiente_VTV");
-
-        var json = await _crmService.Get(uri.ToString());
-        var vehiculos = JsonSerializer.Deserialize<List<VehiculoDto>>(json);
-        
-        return Ok(vehiculos);
-    }
-
-    [HttpGet]
-    [Route("Vehiculos/Prueba")] // TODO: Convertir este EP en el GET genérico.
     public async Task<IActionResult> GetVehiculos()
     {
         // TODO: Filtrar los contratos segun el rol del usuario.
