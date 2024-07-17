@@ -32,9 +32,9 @@ public class AccessTokenHandler : DelegatingHandler
         //Esto luego habria que pasarlo a setting
         var postData = new Dictionary<string, string>
         {
-            { "client_id", "1000.YM5NSNFPY1T90Q6Y4UQA0IGKIZRRYJ" },
-            { "client_secret", "7775ca8868f70e299a4fcd10398835adb2423c5f45" },
-            { "refresh_token", "1000.cd7bf5896bec77abe5e1932fc79f0d9e.826a80631a722bd58f633e1fb8cde31a" },
+            { "client_id", "1000.T0JQBZBHU16DOVJ76TQG4MGTLZQF2H" },
+            { "client_secret", "bc061baaf6ca19fdb603e770c0213103cb06995d1c" },
+            { "refresh_token", "1000.0cc69ee9667401b756c2b2a228a3c3dc.3217f8a5e75a972ee62fe54993e41705" },
             { "grant_type", "refresh_token" }
         };
 

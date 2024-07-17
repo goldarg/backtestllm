@@ -1,23 +1,9 @@
-using System;
-using System.Collections.Generic;
-
 namespace api.Models.DTO
 {
-
-    public class VehiculoResponse
-    {
-        public List<VehiculoDto> Data { get; set; }
-    }
-
-    public class Conductor
-    {
-        public string id { get; set;}
-        public string name { get; set; }
-    }
-
     public class VehiculoDto
     {
         public string id { get; set; }
+        public string Name { get; set; }
         public string? Estado { get; set; }
         public string? Marca_Vehiculo { get; set; }
         public string? Modelo { get; set; }
@@ -34,14 +20,13 @@ namespace api.Models.DTO
         public DateTime? Vencimiento_de_Ruta { get; set; }
         public string? Padron { get; set; }
         public DateTime? Vto_Cedula_verde { get; set; }
-        public Conductor? Conductor { get; set; }
+        public CRMRelatedObject? Conductor { get; set; }
 
-//Cuenta
-//Grupo
-//Poliza
-//Cobertura
-//Fecha_siguiente_VTV
-//Conductor
-//Empresa
+        //Cuenta
+        //Grupo
+        //Poliza
+        //Cobertura
+        //Fecha_siguiente_VTV
+        //Empresa
     }
 }

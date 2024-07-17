@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace api.Models.DTO
 {
     public class BuscarConductorResponse
@@ -13,6 +8,6 @@ namespace api.Models.DTO
     public class BuscarConductorDto
     {
         public string id { get; set; }
-        public Conductor Conductor { get; set; }
+        public CRMRelatedObject Conductor { get; set; }
     }
 }

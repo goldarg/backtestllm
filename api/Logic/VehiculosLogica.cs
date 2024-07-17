@@ -23,7 +23,7 @@ namespace api.Logic
         //3) Buscar Alquileres activo con el vehiculo. Si hay, es ese conductor.
         //4) Si no hay nada, entonces no tiene conductor asignado y se mostrará eso.
         //RDA valida que el vehiculo esté asignado a un único conductor/renting/etc entidad.
-        public async Task<Conductor> BuscarConductor(VehiculoDto dto)
+        public async Task<CRMRelatedObject> BuscarConductor(VehiculoDto dto)
         {
             var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
@@ -64,7 +64,7 @@ namespace api.Logic
                 return responseDto.Data.First().Conductor;
 
             //Si no, entonces no estaba asignado a nadie
-            return new Conductor();
+            return new CRMRelatedObject();
         }
     }
 }
