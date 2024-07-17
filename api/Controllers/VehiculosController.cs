@@ -75,7 +75,7 @@ public class VehiculosController : ControllerBase
         var uri = new StringBuilder("crm/v2/Vehiculos");
         uri.Append("?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta,"+
             "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego,"+
-            "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde");
+            "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde,Fecha_siguiente_VTV");
 
         var json = await _crmService.Get(uri.ToString());
         var vehiculos = JsonSerializer.Deserialize<List<VehiculoDto>>(json);
@@ -91,7 +91,7 @@ public class VehiculosController : ControllerBase
         //Get a Vehiculos con los datos que necesito
         var uri = new StringBuilder("crm/v2/Vehiculos?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta," +
             "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego," +
-            "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde");
+            "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde,Ultimo_Odometro_KM,Fecha_siguiente_VTV,Pa_s,Tipo_cobertura");
 
         var json = await _crmService.Get(uri.ToString());
         var vehiculos = JsonSerializer.Deserialize<List<VehiculoDto>>(json);
@@ -103,7 +103,7 @@ public class VehiculosController : ControllerBase
         //and(Estado:equals:Talcosa) al final del request
         uri = new StringBuilder("crm/v2/Contratos/search?criteria=" +
             "((Tipo_de_Contrato:equals:Renting)or(Tipo_de_Contrato:equals:Fleet Management)or" +
-            "(Tipo_de_Contrato:equals:Alquiler Corporativo))&fields=id,Tipo_de_Contrato");
+            "(Tipo_de_Contrato:equals:Alquiler Corporativo))&fields=id,Tipo_de_Contrato,Cuenta");
 
         json = await _crmService.Get(uri.ToString());
         var contratos = JsonSerializer.Deserialize<List<ContratosIdDto>>(json);
@@ -119,9 +119,20 @@ public class VehiculosController : ControllerBase
             ProcessRelatedFields("crm/v2/Renting?fields=", ["Dominio", "Conductor", "Nombre_del_contrato"], contratos, conductores_Vehiculo)
         );
 
+        //Joineo con los 3 modulos para traer el conductor y su respectivo contrato
         vehiculos?.Join(conductores_Vehiculo, v => v.Name, c => c.Dominio.name, (v, c) =>
         {
             v.Conductor = c.Conductor;
+            v.Contrato = c.Contrato;
+            return v;
+        }).ToList();
+
+        //Joineo con los datos de Contratos para saber el tipo de contrato que representa
+        vehiculos?.Join(contratos, v => v.Contrato.id, c => c.id, (v,c) =>
+        {
+            v.tipoContrato = c.Tipo_de_Contrato;
+            v.Cuenta = c.Cuenta;
+            v.Grupo = c.Cuenta; //TODO sacar hardcodeo cuando esten los grupos
             return v;
         }).ToList();
 
@@ -151,7 +162,8 @@ public class VehiculosController : ControllerBase
             conductores_Vehiculo.Add(new ConductorCuentaVehiculoDto
             {
                 Conductor = conductor,
-                Dominio = dominio
+                Dominio = dominio,
+                Contrato = contrato
             });
         }
     }
