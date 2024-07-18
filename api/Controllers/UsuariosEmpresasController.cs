@@ -23,6 +23,18 @@ public class UsuariosEmpresasController : ControllerBase
         return Ok(usuariosEmpresas);
     }
 
+    [HttpGet]
+    [Route("GetEmpresasDelUsuario")]
+    public IActionResult GetEmpresasDelUsuario(int usuarioId)
+    {
+        var empresas = _unitOfWork.GetRepository<UsuariosEmpresas>().GetAll()
+            .Where(x => x.userId == usuarioId)
+            .Select(x => x.Empresa)
+            .ToList();
+
+        return Ok(empresas);
+    }
+
     [HttpGet("{id}")]
     public IActionResult GetById([FromRoute] int id)
     {
@@ -33,4 +45,5 @@ public class UsuariosEmpresasController : ControllerBase
 
         return Ok(usuariosEmpresas);
     }
+
 }

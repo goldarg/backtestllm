@@ -22,15 +22,4 @@ public class UsuariosRolesController : ControllerBase
             .ToList();
         return Ok(usuariosPermisos);
     }
-
-    [HttpGet("{id}")]
-    public IActionResult GetById([FromRoute] int id)
-    {
-        var usuariosPermisos = _unitOfWork.GetRepository<UsuariosRoles>().GetById(id);
-
-        if (usuariosPermisos == null)
-            return NotFound();
-
-        return Ok(usuariosPermisos);
-    }
 }
