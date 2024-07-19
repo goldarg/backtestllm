@@ -33,7 +33,7 @@ namespace api.Models.DTO
         public DateTime? Fecha_siguiente_VTV { get; set; }
         public string? Pa_s { get; set; }
         public string? Tipo_cobertura { get; set; }
-
+        public string? plazoContrato { get; set; }
         //Poliza
         //Cobertura
     }

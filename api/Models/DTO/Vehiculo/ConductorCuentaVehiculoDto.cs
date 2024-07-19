@@ -7,5 +7,6 @@ namespace api.Models.DTO.Vehiculo
         public CRMRelatedObject Contrato { get; set; }
         public string EstadoContrato { get; set; }
         public string contratoIdInterno { get; set; }
+        public string? Plazo_Propuesta { get; set; }
     }
 }

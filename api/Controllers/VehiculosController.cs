@@ -106,7 +106,7 @@ public class VehiculosController : ControllerBase
         //and(Estado:equals:Talcosa) al final del request
         uri = new StringBuilder("crm/v2/Contratos/search?criteria=" +
             "((Tipo_de_Contrato:equals:Renting)or(Tipo_de_Contrato:equals:Fleet Management)or" +
-            "(Tipo_de_Contrato:equals:Alquiler Corporativo))&fields=id,Tipo_de_Contrato,Cuenta");
+            "(Tipo_de_Contrato:equals:Alquiler Corporativo))&fields=id,Tipo_de_Contrato,Cuenta,Plazo_Propuesta");
 
         json = await _crmService.Get(uri.ToString());
         var contratos = JsonSerializer.Deserialize<List<ContratosIdDto>>(json);
@@ -127,6 +127,7 @@ public class VehiculosController : ControllerBase
         {
             v.Conductor = c.Conductor;
             v.Contrato = c.Contrato;
+            v.plazoContrato = c.Plazo_Propuesta;
             v.EstadoContrato = c.EstadoContrato;
             v.idContratoInterno = c.contratoIdInterno;
             return v;
@@ -138,6 +139,7 @@ public class VehiculosController : ControllerBase
             v.tipoContrato = c.Tipo_de_Contrato;
             v.Cuenta = c.Cuenta;
             v.Grupo = c.Cuenta; //TODO sacar hardcodeo cuando esten los grupos. Se deja asi porque una empresa "Standalone" se tiene a sí misma como grupo
+            v.plazoContrato = c.Plazo_Propuesta;
             return v;
         }).ToList();
 
