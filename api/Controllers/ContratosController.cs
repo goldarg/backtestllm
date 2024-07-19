@@ -11,7 +11,6 @@ namespace api.Controllers
     [Route("api/[controller]")]
     public class ContratosController : Controller
     {
-        // TODO: Permisos a definir 
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IRdaUnitOfWork _unitOfWork;
         private readonly CRMService _crmService;

@@ -5,6 +5,7 @@ using api.DataAccess;
 using api.Logic;
 using api.Models.DTO;
 using api.Models.DTO.Vehiculo;
+using api.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 
@@ -14,7 +15,6 @@ namespace api.Controllers;
 [ApiController]
 public class VehiculosController : ControllerBase
 {
-    // TODO: Definir permisos
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly CRMService _crmService;
     private readonly IRdaUnitOfWork _unitOfWork;
@@ -71,7 +71,19 @@ public class VehiculosController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetVehiculos()
     {
-        // TODO: Filtrar los contratos segun el rol del usuario.
+        // TODO: Obtener id/empresa/username del usuario
+        var userId = 3; //Placeholder por ahora
+
+        //Busco el usuario y las empresas que puede ver
+        var requestUser = _unitOfWork.GetRepository<User>().GetAll()
+            .Where(x => x.id == userId)
+            .SingleOrDefault();
+
+        if (requestUser == null)
+            throw new Exception ("No se encontró el usuario solicitante");
+
+        var empresasDisponibles = requestUser.EmpresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
+
         //Get a Vehiculos con los datos que necesito
         var uri = new StringBuilder("crm/v2/Vehiculos?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta," +
             "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego," +
@@ -116,9 +128,11 @@ public class VehiculosController : ControllerBase
         {
             v.tipoContrato = c.Tipo_de_Contrato;
             v.Cuenta = c.Cuenta;
-            v.Grupo = c.Cuenta; //TODO sacar hardcodeo cuando esten los grupos
+            v.Grupo = c.Cuenta; //TODO sacar hardcodeo cuando esten los grupos. Se deja asi porque una empresa "Standalone" se tiene a sí misma como grupo
             return v;
         }).ToList();
+
+        vehiculos = vehiculos.Where(x => empresasDisponibles.Contains(x.Cuenta.id)).ToList();
 
         return Ok(vehiculos);
     }

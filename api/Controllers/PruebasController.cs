@@ -63,8 +63,8 @@ public class PruebasController : ControllerBase
         return Ok(vehiculos);
     }
 
-    [HttpGet("MetodoPrueba")]
-    public IActionResult MetodoPrueba()
+    [HttpGet("FuncionPrueba")]
+    public IActionResult FuncionPrueba()
     {
         var jsonArray = new JArray
         {
