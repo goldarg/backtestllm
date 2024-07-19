@@ -26,9 +26,6 @@ namespace api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetContratos()
         {
-
-            throw new BadRequestException("se me pinto fallar");
-
             var userId = User.Identity.Name; //TODO ver de donde sale el username o el ID
             var placeholder = 3;
 
