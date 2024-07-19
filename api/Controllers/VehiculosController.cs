@@ -83,14 +83,15 @@ public class VehiculosController : ControllerBase
         var userId = 3; //Placeholder por ahora
 
         //Busco el usuario y las empresas que puede ver
-        var requestUser = _unitOfWork.GetRepository<User>().GetAll()
+        var empresasAsignaciones = _unitOfWork.GetRepository<User>().GetAll()
             .Where(x => x.id == userId)
+            .Select(x => x.EmpresasAsignaciones)
             .SingleOrDefault();
 
-        if (requestUser == null)
+        if (empresasAsignaciones == null)
             throw new BadRequestException("No se encontró el usuario solicitante");
 
-        var empresasDisponibles = requestUser.EmpresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
+        var empresasDisponibles = empresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
 
         //Get a Vehiculos con los datos que necesito
         var uri = new StringBuilder("crm/v2/Vehiculos?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta," +

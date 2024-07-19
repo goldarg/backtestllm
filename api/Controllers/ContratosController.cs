@@ -29,14 +29,15 @@ namespace api.Controllers
             var userId = User.Identity.Name; //TODO ver de donde sale el username o el ID
             var placeholder = 3;
 
-            var requestUser = _unitOfWork.GetRepository<User>().GetAll()
+            var empresasAsignaciones = _unitOfWork.GetRepository<User>().GetAll()
             .Where(x => x.id == placeholder)
+            .Select(x => x.EmpresasAsignaciones)
             .SingleOrDefault();
 
-            if (requestUser == null)
+            if (empresasAsignaciones == null)
                 throw new BadRequestException("No se encontró el usuario solicitante");
 
-            var empresasDisponibles = requestUser.EmpresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
+            var empresasDisponibles = empresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
 
             var uri = new StringBuilder("crm/v2/Contratos?fields=id,Name,Cuenta");
             var json = await _crmService.Get(uri.ToString());
