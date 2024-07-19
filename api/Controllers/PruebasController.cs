@@ -1,5 +1,6 @@
 using api.DataAccess;
 using api.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -8,6 +9,7 @@ namespace api.Controllers;
 
 [Route("api/pruebas")]
 [ApiController]
+[Authorize]
 public class PruebasController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
@@ -101,6 +103,7 @@ public class PruebasController : ControllerBase
     [HttpGet]
     public IActionResult GetContactsCrm()
     {
+        // User.Identity.Name;
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
         var response = httpClient.GetAsync("crm/v2/Contacts").Result;

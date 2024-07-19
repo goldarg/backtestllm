@@ -1,5 +1,9 @@
 using System.Text;
+using System.Text.Json;
+using api.Connected_Services;
 using api.DataAccess;
+using api.Models.DTO.Contrato;
+using api.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -10,32 +14,38 @@ namespace api.Controllers
         // TODO: Permisos a definir 
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IRdaUnitOfWork _unitOfWork;
+        private readonly CRMService _crmService;
 
-        public ContratosController(IHttpClientFactory httpClientFactory, IRdaUnitOfWork unitOfWork)
+        public ContratosController(IHttpClientFactory httpClientFactory, IRdaUnitOfWork unitOfWork, CRMService crmService)
         {
             _httpClientFactory = httpClientFactory;
             _unitOfWork = unitOfWork;
+            _crmService = crmService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetContratos()
         {
-            var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+            var userId = User.Identity.Name; //TODO ver de donde sale el username o el ID
+            var placeholder = 3;
 
-            var uri = new StringBuilder("crm/v2/Contratos");
+            var requestUser = _unitOfWork.GetRepository<User>().GetAll()
+            .Where(x => x.id == placeholder)
+            .SingleOrDefault();
 
-            // TODO: Filtrar los contratos segun el rol del usuario.
-            // var empresa = string.Empty;
+            if (requestUser == null)
+                throw new Exception ("No se encontró el usuario solicitante");
 
-            // uri.Append(false ? $"/search?criteria=(Cuenta.Name:equals:{empresa})&" : "?");
+            var empresasDisponibles = requestUser.EmpresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
 
-            // uri.Append("fields=Plazo_en_d_as,Vehiculos_Activos_Renting,Z_Fecha_Finalizacion,Cantidad_de_unidades,Tipo_de_Contrato,Nro_Contrato," +
-            //     "Vehiculos_Activos,Estado,Fecha_Inicio_Propuesta,Plazo_Propuesta,Facturacion_Mensual,Currency");
+            var uri = new StringBuilder("crm/v2/Contratos?fields=id,Name,Cuenta");
+            var json = await _crmService.Get(uri.ToString());
+            var contratos = JsonSerializer.Deserialize<List<ContratoResponse>>(json);
 
-            var response = await httpClient.GetAsync(uri.ToString());
-            var json = await response.Content.ReadAsStringAsync();
+            //Se filtra desde el BE porque el CRM soporta un maximo de 20 operadores logicos
+            var result = contratos.Where(x => empresasDisponibles.Contains(x.Cuenta.id)).ToList();
 
-            return Ok(json);
+            return Ok(result);
         }
     }
 }

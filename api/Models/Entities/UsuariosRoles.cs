@@ -7,6 +7,6 @@ public class UsuariosRoles
     public int id { get; set; }
     public int userId { get; set; }
     public int rolId { get; set; }
-    public User? User { get; set; }
-    public Rol? Rol { get; set; }
+    public virtual User? User { get; set; }
+    public virtual Rol? Rol { get; set; }
 }

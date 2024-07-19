@@ -23,6 +23,9 @@ namespace api.DataAccess.Configurators
             builder.Property(x => x.activo).IsRequired().HasColumnName("activo").HasColumnType("bit").HasDefaultValue(1);
             builder.Property(x => x.guid).IsRequired().HasColumnName("guid").HasColumnType("uniqueidentifier").IsRequired();
             builder.Property(x => x.isRDA).IsRequired().HasColumnName("guid").HasColumnType("bit").HasDefaultValue(1);
+            builder.Property(x => x.idCRM).IsRequired().HasColumnName("idCRM").HasColumnType("nvarchar").HasMaxLength(100);
+
+            builder.HasMany(x => x.EmpresasAsignaciones).WithOne(u => u.User).HasForeignKey(q => q.userId);
         }
     }
 }

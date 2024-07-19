@@ -8,8 +8,8 @@ public class User
     public string? apellido { get; set; }
     public bool activo { get; set; }
     public bool isRDA { get; set; }
-    public Empresa? Empresa { get; set; }
+    public string? idCRM { get; set; }
     public Guid guid { get; set; }
-    public ICollection<UsuariosRoles>? Roles { get; set; }
-    public ICollection<UsuariosEmpresas>? EmpresasAsignaciones { get; set; }
+    public virtual ICollection<UsuariosRoles>? Roles { get; set; }
+    public virtual ICollection<UsuariosEmpresas>? EmpresasAsignaciones { get; set; }
 }

@@ -7,5 +7,5 @@ public class Rol
     public int id { get; set; }
     public string? nombreRol { get; set; }
     public Guid guid { get; set; }
-    public ICollection<UsuariosRoles>? Asignaciones { get; set; }
+    public virtual ICollection<UsuariosRoles>? Asignaciones { get; set; }
 }
