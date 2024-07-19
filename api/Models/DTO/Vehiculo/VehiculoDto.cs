@@ -22,6 +22,7 @@ namespace api.Models.DTO
         public DateTime? Vto_Cedula_verde { get; set; }
         public CRMRelatedObject? Conductor { get; set; }
         public CRMRelatedObject? Contrato { get; set; }
+        public string? EstadoContrato { get; set; }
         public string? tipoContrato { get; set; }
         public CRMRelatedObject? Cuenta { get; set; }
         public int? Ultimo_Odometro_KM { get; set; }

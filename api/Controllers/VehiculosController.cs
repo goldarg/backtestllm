@@ -80,7 +80,7 @@ public class VehiculosController : ControllerBase
             .SingleOrDefault();
 
         if (requestUser == null)
-            throw new Exception ("No se encontró el usuario solicitante");
+            throw new Exception("No se encontró el usuario solicitante");
 
         var empresasDisponibles = requestUser.EmpresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
 
@@ -108,11 +108,11 @@ public class VehiculosController : ControllerBase
 
         await Task.WhenAll(
             // Alquileres
-            ProcessRelatedFields("crm/v2/Alquileres?fields=", ["Dominio_Alquiler", "Conductor", "Contrato"], contratos, conductores_Vehiculo),
+            ProcessRelatedFields("crm/v2/Alquileres?fields=", ["Dominio_Alquiler", "Conductor", "Contrato", "Estado"], contratos, conductores_Vehiculo),
             // Servicios
-            ProcessRelatedFields("crm/v2/Servicios_RDA?fields=", ["Dominio", "Conductor", "Contrato"], contratos, conductores_Vehiculo),
+            ProcessRelatedFields("crm/v2/Servicios_RDA?fields=", ["Dominio", "Conductor", "Contrato", "Estado"], contratos, conductores_Vehiculo),
             // Renting
-            ProcessRelatedFields("crm/v2/Renting?fields=", ["Dominio", "Conductor", "Nombre_del_contrato"], contratos, conductores_Vehiculo)
+            ProcessRelatedFields("crm/v2/Renting?fields=", ["Dominio", "Conductor", "Nombre_del_contrato", "Estado"], contratos, conductores_Vehiculo)
         );
 
         //Joineo con los 3 modulos para traer el conductor y su respectivo contrato
@@ -120,11 +120,12 @@ public class VehiculosController : ControllerBase
         {
             v.Conductor = c.Conductor;
             v.Contrato = c.Contrato;
+            v.EstadoContrato = c.EstadoContrato;
             return v;
         }).ToList();
 
         //Joineo con los datos de Contratos para saber el tipo de contrato que representa
-        vehiculos?.Join(contratos, v => v.Contrato.id, c => c.id, (v,c) =>
+        vehiculos?.Join(contratos, v => v.Contrato.id, c => c.id, (v, c) =>
         {
             v.tipoContrato = c.Tipo_de_Contrato;
             v.Cuenta = c.Cuenta;
@@ -156,12 +157,14 @@ public class VehiculosController : ControllerBase
 
             var conductor = item[fields[1]].ToObject<CRMRelatedObject>();
             var dominio = item[fields[0]].ToObject<CRMRelatedObject>();
+            var estado = item[fields[3]].ToObject<string>();
 
             conductores_Vehiculo.Add(new ConductorCuentaVehiculoDto
             {
                 Conductor = conductor,
                 Dominio = dominio,
-                Contrato = contrato
+                Contrato = contrato,
+                EstadoContrato = estado
             });
         }
     }
