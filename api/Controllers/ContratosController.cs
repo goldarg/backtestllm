@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using api.Connected_Services;
 using api.DataAccess;
+using api.Exceptions;
 using api.Models.DTO.Contrato;
 using api.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +34,7 @@ namespace api.Controllers
             .SingleOrDefault();
 
             if (requestUser == null)
-                throw new Exception ("No se encontró el usuario solicitante");
+                throw new BadRequestException("No se encontró el usuario solicitante");
 
             var empresasDisponibles = requestUser.EmpresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
 
