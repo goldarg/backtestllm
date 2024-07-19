@@ -11,7 +11,6 @@ namespace api.Models.Entities
         public string? razonSocial { get; set; }
         public Guid guid { get; set;}
         public string? idCRM { get; set; }
-        public virtual ICollection<User>? Usuarios { get; set; }
         public virtual ICollection<UsuariosEmpresas>? Asignaciones { get; set; }
     }
 }
