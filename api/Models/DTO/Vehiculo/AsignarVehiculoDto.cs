@@ -7,8 +7,8 @@ namespace api.Models.DTO.Vehiculo
 {
     public class AsignarVehiculoDto
     {
-        public int usuarioId { get; set; }
+        public string? usuarioId { get; set; }
         public string tipoContrato { get; set; }
-        public int contratoId { get; set;}
+        public string? idContratoInterno { get; set;}
     }
 }

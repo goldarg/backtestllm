@@ -30,21 +30,27 @@ public class VehiculosController : ControllerBase
 
     [HttpPost]
     [Route("AsignarVehiculo")]
-    public async Task<IActionResult> AsignarVehiculo([FromBody] AsignarVehiculoRequest asignarVehiculoRequest)
+    public async Task<IActionResult> AsignarVehiculo([FromBody] AsignarVehiculoDto asignarVehiculoDto)
     {
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
+        if (asignarVehiculoDto.usuarioId == null)
+        {
+            asignarVehiculoDto.usuarioId = _unitOfWork.GetRepository<User>().GetAll()
+                .Where(x => x.nombre == "Sin" && x.apellido == "Asignar").Single().idCRM;
+        }
+
         //Busco y actualizo según el tipo de contrato
         string targetModule;
-        if (asignarVehiculoRequest.tipoContrato == "Fleet Management")
-            asignarVehiculoRequest.tipoContrato = "Servicios_RDA";
-        else if (asignarVehiculoRequest.tipoContrato == "Renting")
-            asignarVehiculoRequest.tipoContrato = "Renting";
-        else if (asignarVehiculoRequest.tipoContrato == "Alquiler Corporativo")
-            asignarVehiculoRequest.tipoContrato = "Alquileres";
+        if (asignarVehiculoDto.tipoContrato == "Fleet Management")
+            asignarVehiculoDto.tipoContrato = "Servicios_RDA";
+        else if (asignarVehiculoDto.tipoContrato == "Renting")
+            asignarVehiculoDto.tipoContrato = "Renting";
+        else if (asignarVehiculoDto.tipoContrato == "Alquiler Corporativo")
+            asignarVehiculoDto.tipoContrato = "Alquileres";
         else throw new Exception("No se pudo determinar el tipo de contrato del vehículo");
 
-        var uri = new StringBuilder($"crm/v2/{asignarVehiculoRequest.tipoContrato}/upsert");
+        var uri = new StringBuilder($"crm/v2/{asignarVehiculoDto.tipoContrato}/upsert");
 
         //Armo el objeto para enviar al CRM, y devuelvo la respuesta
         var jsonObject = new
@@ -53,17 +59,18 @@ public class VehiculosController : ControllerBase
             {
                 new
                 {
-                    id = asignarVehiculoRequest.contratoId,
+                    id = asignarVehiculoDto.idContratoInterno,
                     Conductor = new
                     {
-                        id = asignarVehiculoRequest.usuarioId
+                        id = asignarVehiculoDto.usuarioId
                     }
                 }
             }
         };
 
         string jsonString = JsonSerializer.Serialize(jsonObject, new JsonSerializerOptions { WriteIndented = true });
-        var response = await httpClient.GetAsync(uri.ToString());
+        HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+        var response = await httpClient.PostAsync(uri.ToString(), content);
         var json = await response.Content.ReadAsStringAsync();
         return Ok(json);
     }
@@ -108,11 +115,11 @@ public class VehiculosController : ControllerBase
 
         await Task.WhenAll(
             // Alquileres
-            ProcessRelatedFields("crm/v2/Alquileres?fields=", ["Dominio_Alquiler", "Conductor", "Contrato", "Estado"], contratos, conductores_Vehiculo),
+            ProcessRelatedFields("crm/v2/Alquileres?fields=", ["Dominio_Alquiler", "Conductor", "Contrato", "Estado", "id"], contratos, conductores_Vehiculo),
             // Servicios
-            ProcessRelatedFields("crm/v2/Servicios_RDA?fields=", ["Dominio", "Conductor", "Contrato", "Estado"], contratos, conductores_Vehiculo),
+            ProcessRelatedFields("crm/v2/Servicios_RDA?fields=", ["Dominio", "Conductor", "Contrato", "Estado", "id"], contratos, conductores_Vehiculo),
             // Renting
-            ProcessRelatedFields("crm/v2/Renting?fields=", ["Dominio", "Conductor", "Nombre_del_contrato", "Estado"], contratos, conductores_Vehiculo)
+            ProcessRelatedFields("crm/v2/Renting?fields=", ["Dominio", "Conductor", "Nombre_del_contrato", "Estado", "id"], contratos, conductores_Vehiculo)
         );
 
         //Joineo con los 3 modulos para traer el conductor y su respectivo contrato
@@ -121,6 +128,7 @@ public class VehiculosController : ControllerBase
             v.Conductor = c.Conductor;
             v.Contrato = c.Contrato;
             v.EstadoContrato = c.EstadoContrato;
+            v.idContratoInterno = c.contratoIdInterno;
             return v;
         }).ToList();
 
@@ -158,13 +166,15 @@ public class VehiculosController : ControllerBase
             var conductor = item[fields[1]].ToObject<CRMRelatedObject>();
             var dominio = item[fields[0]].ToObject<CRMRelatedObject>();
             var estado = item[fields[3]].ToObject<string>();
+            var contratoIdInterno = item[fields[4]].ToObject<string>();
 
             conductores_Vehiculo.Add(new ConductorCuentaVehiculoDto
             {
                 Conductor = conductor,
                 Dominio = dominio,
                 Contrato = contrato,
-                EstadoContrato = estado
+                EstadoContrato = estado,
+                contratoIdInterno = contratoIdInterno
             });
         }
     }
