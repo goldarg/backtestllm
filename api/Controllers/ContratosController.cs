@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using api.Connected_Services;
 using api.DataAccess;
+using api.Exceptions;
 using api.Models.DTO.Contrato;
 using api.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +26,9 @@ namespace api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetContratos()
         {
+
+            throw new BadRequestException("se me pinto fallar");
+
             var userId = User.Identity.Name; //TODO ver de donde sale el username o el ID
             var placeholder = 3;
 
@@ -33,7 +37,7 @@ namespace api.Controllers
             .SingleOrDefault();
 
             if (requestUser == null)
-                throw new Exception ("No se encontró el usuario solicitante");
+                throw new Exception("No se encontró el usuario solicitante");
 
             var empresasDisponibles = requestUser.EmpresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
 

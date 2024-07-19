@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using api.Connected_Services;
 using api.DataAccess;
+using api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -82,14 +83,15 @@ builder.Services.AddScoped<CRMService>();
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 }
-app.UseDeveloperExceptionPage();
 
 app.UseAuthentication();
 app.UseRouting();
