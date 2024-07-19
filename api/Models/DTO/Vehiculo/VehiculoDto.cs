@@ -22,7 +22,7 @@ namespace api.Models.DTO
         public DateTime? Vto_Cedula_verde { get; set; }
         public CRMRelatedObject? Conductor { get; set; }
         public CRMRelatedObject? Contrato { get; set; }
-        public string? EstadoContrato { get; set; }
+        public string? estadoContratoInterno { get; set; }
         public string? idContratoInterno { get; set; }
         public string? tipoContrato { get; set; }
         public CRMRelatedObject? Cuenta { get; set; }
@@ -34,6 +34,7 @@ namespace api.Models.DTO
         public string? Pa_s { get; set; }
         public string? Tipo_cobertura { get; set; }
         public string? plazoContrato { get; set; }
+        public DateTime? fechaFinContratoInterno { get; set; }
         //Poliza
         //Cobertura
     }

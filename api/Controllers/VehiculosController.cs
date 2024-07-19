@@ -116,11 +116,11 @@ public class VehiculosController : ControllerBase
 
         await Task.WhenAll(
             // Alquileres
-            ProcessRelatedFields("crm/v2/Alquileres?fields=", ["Dominio_Alquiler", "Conductor", "Contrato", "Estado", "id"], contratos, conductores_Vehiculo),
+            ProcessRelatedFields("crm/v2/Alquileres?fields=", ["Dominio_Alquiler", "Conductor", "Contrato", "Estado", "id", "Fecha_de_Devolucion"], contratos, conductores_Vehiculo),
             // Servicios
-            ProcessRelatedFields("crm/v2/Servicios_RDA?fields=", ["Dominio", "Conductor", "Contrato", "Estado", "id"], contratos, conductores_Vehiculo),
+            ProcessRelatedFields("crm/v2/Servicios_RDA?fields=", ["Dominio", "Conductor", "Contrato", "Estado", "id", "Fin_de_servicio"], contratos, conductores_Vehiculo),
             // Renting
-            ProcessRelatedFields("crm/v2/Renting?fields=", ["Dominio", "Conductor", "Nombre_del_contrato", "Estado", "id"], contratos, conductores_Vehiculo)
+            ProcessRelatedFields("crm/v2/Renting?fields=", ["Dominio", "Conductor", "Nombre_del_contrato", "Estado", "id", "Fecha_fin_de_renting"], contratos, conductores_Vehiculo)
         );
 
         //Joineo con los 3 modulos para traer el conductor y su respectivo contrato
@@ -129,8 +129,9 @@ public class VehiculosController : ControllerBase
             v.Conductor = c.Conductor;
             v.Contrato = c.Contrato;
             v.plazoContrato = c.Plazo_Propuesta;
-            v.EstadoContrato = c.EstadoContrato;
+            v.estadoContratoInterno = c.estadoContratoInterno;
             v.idContratoInterno = c.contratoIdInterno;
+            v.fechaFinContratoInterno = c.FechaFinContratoInterno;
             return v;
         }).ToList();
 
@@ -170,14 +171,16 @@ public class VehiculosController : ControllerBase
             var dominio = item[fields[0]].ToObject<CRMRelatedObject>();
             var estado = item[fields[3]].ToObject<string>();
             var contratoIdInterno = item[fields[4]].ToObject<string>();
+            var fechaFinContratoInterno = item[fields[5]].ToObject<DateTime?>();
 
             conductores_Vehiculo.Add(new ConductorCuentaVehiculoDto
             {
                 Conductor = conductor,
                 Dominio = dominio,
                 Contrato = contrato,
-                EstadoContrato = estado,
-                contratoIdInterno = contratoIdInterno
+                estadoContratoInterno = estado,
+                contratoIdInterno = contratoIdInterno,
+                FechaFinContratoInterno = fechaFinContratoInterno
             });
         }
     }
