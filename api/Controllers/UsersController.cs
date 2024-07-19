@@ -28,7 +28,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    [Route("PruebaCoso")]
+    [Route("GetConductores")]
     public IActionResult GetConductores()
     {
         var userId = User.Identity.Name; //TODO ver de donde sale el username o el ID
