@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using api.Connected_Services;
 using api.DataAccess;
+using api.Exceptions;
 using api.Logic;
 using api.Models.DTO;
 using api.Models.DTO.Vehiculo;
@@ -48,7 +49,7 @@ public class VehiculosController : ControllerBase
             asignarVehiculoDto.tipoContrato = "Renting";
         else if (asignarVehiculoDto.tipoContrato == "Alquiler Corporativo")
             asignarVehiculoDto.tipoContrato = "Alquileres";
-        else throw new Exception("No se pudo determinar el tipo de contrato del vehículo");
+        else throw new BadRequestException("No se pudo determinar el tipo de contrato del vehículo");
 
         var uri = new StringBuilder($"crm/v2/{asignarVehiculoDto.tipoContrato}/upsert");
 
@@ -87,7 +88,7 @@ public class VehiculosController : ControllerBase
             .SingleOrDefault();
 
         if (requestUser == null)
-            throw new Exception("No se encontró el usuario solicitante");
+            throw new BadRequestException("No se encontró el usuario solicitante");
 
         var empresasDisponibles = requestUser.EmpresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
 
