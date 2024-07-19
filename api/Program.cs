@@ -13,41 +13,43 @@ var builder = WebApplication.CreateBuilder(args);
 
 /////////
 ///// Adds Microsoft Identity platform (Azure AD B2C) support to protect this Api
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApi(options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddMicrosoftIdentityWebApi(options =>
+{
+    builder.Configuration.Bind("AzureAdB2C", options);
+
+    options.TokenValidationParameters.NameClaimType = "name";
+
+    // var existTokValidation = options.Events.OnTokenValidated;
+
+    // options.Events.OnTokenValidated = async context => {
+    //     try
+    //     {
+    //         await existTokValidation(context);
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex);
+    //     }
+
+    // };
+
+    options.Events = new JwtBearerEvents()
     {
-        builder.Configuration.Bind("AzureAdB2C", options);
-
-        options.TokenValidationParameters.NameClaimType = "name";
-
-        // var existTokValidation = options.Events.OnTokenValidated;
-
-        // options.Events.OnTokenValidated = async context => {
-        //     try
-        //     {
-        //         await existTokValidation(context);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine(ex);
-        //     }
-            
-        // };
-
-        options.Events= new JwtBearerEvents() {
-        OnAuthenticationFailed = context => {
+        OnAuthenticationFailed = context =>
+        {
             Console.WriteLine(context.Exception);
 
             return Task.CompletedTask;
         }
-        };
-    },
-    options => { builder.Configuration.Bind("AzureAdB2C", options); });
-    // End of the Microsoft Identity platform block    
+    };
+},
+options => { builder.Configuration.Bind("AzureAdB2C", options); });
+// End of the Microsoft Identity platform block    
 
-    builder.Services.AddControllers();
+builder.Services.AddControllers();
 
-    //////////////
+//////////////
 
 // builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -85,8 +87,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseCors(x=>x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    app.UseCors(x => x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 }
+app.UseDeveloperExceptionPage();
 
 app.UseAuthentication();
 app.UseRouting();
