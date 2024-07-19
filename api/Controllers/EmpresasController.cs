@@ -1,4 +1,5 @@
 using api.DataAccess;
+using api.Models.DTO;
 using api.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,11 @@ public class EmpresasController : ControllerBase
     public IActionResult GetAll()
     {
         var empresas = _unitOfWork.GetRepository<Empresa>().GetAll()
+            .Select(x => new CRMRelatedObject
+            {
+                id = x.idCRM,
+                name = x.razonSocial
+            })
             .ToList();
 
         return Ok(empresas);

@@ -1,6 +1,5 @@
 using api.DataAccess;
 using api.Models.DTO;
-using api.Models.DTO.Conductor;
 using api.Models.DTO.Empresa;
 using api.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -45,18 +44,10 @@ public class UsersController : ControllerBase
         var conductores = _unitOfWork.GetRepository<User>().GetAll()
             .Where(u => u.Roles.Any(reg => reg.Rol.nombreRol == "CONDUCTOR") &&
             u.EmpresasAsignaciones.Any(ea => empresasDisponibles.Contains(ea.empresaId)))
-            .Select(e => new ConductorDto
-            {
-                id = e.id,
-                idCRM = e.idCRM,
-                nombre = e.nombre,
-                apellido = e.apellido,
-                userName = e.userName,
-                Empresa = new EmpresaDto { //Por definición, un conductor siempre tiene 1 empresa asociada
-                    id = e.EmpresasAsignaciones.First().Empresa.id,
-                    idCRM = e.EmpresasAsignaciones.First().Empresa.idCRM,
-                    razonSocial = e.EmpresasAsignaciones.First().Empresa.razonSocial
-                }
+            .Select(x => new {
+                id = x.idCRM,
+                name = x.nombre + " " + x.apellido, //Mismo formato que otroga el CRM
+                empresaId = x.EmpresasAsignaciones.First().empresaId
             })
             .ToList();
 
