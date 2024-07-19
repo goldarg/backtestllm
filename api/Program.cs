@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using api.Connected_Services;
 using api.DataAccess;
 using api.Middleware;
+using api.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -15,37 +17,69 @@ var builder = WebApplication.CreateBuilder(args);
 /////////
 ///// Adds Microsoft Identity platform (Azure AD B2C) support to protect this Api
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddMicrosoftIdentityWebApi(options =>
-{
-    builder.Configuration.Bind("AzureAdB2C", options);
-
-    options.TokenValidationParameters.NameClaimType = "name";
-
-    // var existTokValidation = options.Events.OnTokenValidated;
-
-    // options.Events.OnTokenValidated = async context => {
-    //     try
-    //     {
-    //         await existTokValidation(context);
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Console.WriteLine(ex);
-    //     }
-
-    // };
-
-    options.Events = new JwtBearerEvents()
-    {
-        OnAuthenticationFailed = context =>
+    .AddMicrosoftIdentityWebApi(options =>
         {
-            Console.WriteLine(context.Exception);
+            builder.Configuration.Bind("AzureAdB2C", options);
+            options.TokenValidationParameters.NameClaimType = "name";
 
-            return Task.CompletedTask;
-        }
-    };
-},
-options => { builder.Configuration.Bind("AzureAdB2C", options); });
+            // var existTokValidation = options.Events.OnTokenValidated;
+
+            // options.Events.OnTokenValidated = async context => {
+            //     try
+            //     {
+            //         await existTokValidation(context);
+            //     }
+            //     catch (Exception ex)
+            //     {
+            //         Console.WriteLine(ex);
+            //     }
+
+            // };
+
+            options.Events = new JwtBearerEvents()
+            {
+                OnTokenValidated = async context =>
+                {
+                    var unitOfWork = context.HttpContext.RequestServices.GetRequiredService<IRdaUnitOfWork>();
+                    var userRepository = unitOfWork.GetRepository<User>();
+
+                    var email = context.Principal.FindFirst("preferred_username")?.Value;
+                    if (email != null)
+                    {
+                        // Obtener roles y empresas del usuario desde la base de datos
+                        var user = await userRepository.GetAll()
+                            .FirstOrDefaultAsync(u => u.userName == email);
+
+                        if (user != null)
+                        {
+                            var claimsIdentity = context.Principal.Identity as ClaimsIdentity;
+                            // Agregar roles a los claims
+                            foreach (var role in user.Roles)
+                            {
+                                claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role.Rol.nombreRol));
+                            }
+
+                            // // Agregar empresas a los claims
+                            // foreach (var company in user.Companies)
+                            // {
+                            //     claimsIdentity.AddClaim(new Claim("company", company.Name));
+                            // }
+                        }
+                    }
+                }
+            };
+
+            // options.Events = new JwtBearerEvents()
+            // {
+            //     OnAuthenticationFailed = context =>
+            //     {
+            //         Console.WriteLine(context.Exception);
+
+            //         return Task.CompletedTask;
+            //     }
+            // };
+        },
+    options => { builder.Configuration.Bind("AzureAdB2C", options); });
 // End of the Microsoft Identity platform block    
 
 builder.Services.AddControllers();
@@ -94,8 +128,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
-app.UseRouting();
 app.UseAuthorization();
+app.UseRouting();
 
 
 app.UseHttpsRedirection();

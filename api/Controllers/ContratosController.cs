@@ -27,6 +27,9 @@ namespace api.Controllers
         public async Task<IActionResult> GetContratos()
         {
             var userId = User.Identity.Name; //TODO ver de donde sale el username o el ID
+
+            return Ok("chau");
+
             var placeholder = 3;
 
             var requestUser = _unitOfWork.GetRepository<User>().GetAll()
