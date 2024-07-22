@@ -1,13 +1,17 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using api.Connected_Services;
 using api.DataAccess;
 using api.Exceptions;
 using api.Logic;
 using api.Models.DTO;
+using api.Models.DTO.Operaciones;
 using api.Models.DTO.Vehiculo;
 using api.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json.Linq;
 
 namespace api.Controllers;
@@ -151,7 +155,60 @@ public class VehiculosController : ControllerBase
         return Ok(vehiculos);
     }
 
-    private async Task ProcessRelatedFields(string uri, string[] fields, List<ContratosIdDto> contratos, List<ConductorCuentaVehiculoDto> conductores_Vehiculo)
+    [HttpGet("/HistorialOperaciones")]
+    public async Task<IActionResult> GetHistorialOperaciones([FromQuery] string dominio, [FromQuery] string tipoContrato)
+    {
+        // TODO: Obtener id/empresa/username del usuario
+        var userId = 3; //Placeholder por ahora
+
+        //Busco el usuario y las empresas que puede ver
+        var empresasAsignaciones = _unitOfWork.GetRepository<User>().GetAll()
+            .Where(x => x.id == userId)
+            .Select(x => x.EmpresasAsignaciones)
+            .SingleOrDefault() ?? throw new BadRequestException("No se encontró el usuario solicitante");
+
+        var empresasDisponibles = empresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
+
+        var uris = new Dictionary<string, string>
+        {
+            { "Alquiler Corporativo", $"crm/v2/Alquileres/search?criteria=(Dominio_Alquiler.name:equals:" + dominio + ")&fields=Dominio_Alquiler,Contrato" },
+            { "Fleet Management", $"crm/v2/Servicios_RDA/search?criteria=(Dominio.name:equals:" + dominio + ")&fields=Dominio,Contrato" },
+            { "Renting", $"crm/v2/Renting/search?criteria=(Dominio.name:equals:" + dominio + ")&fields=Dominio,Nombre_del_contrato" }
+        };
+
+        var json = await _crmService.Get(uris[tipoContrato]);
+        var contratoId = JArray.Parse(json)[0][tipoContrato == "Renting" ? "Nombre_del_contrato" : "Contrato"].ToObject<CRMRelatedObject>().id;
+
+        var uri = new StringBuilder("crm/v2/Contratos/search?criteria=(Id:equals:" + contratoId + ")&fields=Cuenta");
+
+        json = await _crmService.Get(uri.ToString());
+
+        var contrato = JsonSerializer.Deserialize<List<ContratosIdDto>>(json)[0];
+
+        if (!empresasDisponibles.Contains(contrato.Cuenta.id))
+            throw new Exception("No tiene permisos para ver este contrato");
+
+        uri = new StringBuilder("crm/v2/Purchase_Orders/search?criteria=(Vehiculo.name:equals:" + dominio + ")" +
+            "&fields=id,Clasificaciones,Vehiculo,Product_Details,Vendor_Name,Turno,Status,PO_Number");
+
+        json = await _crmService.Get(uri.ToString());
+        var operaciones = JsonSerializer.Deserialize<List<OperacionesResponseDto>>(json);
+
+        var response = operaciones.Select(o => new OperacionesVehiculoDto
+        {
+            Id = o.Id,
+            TipoOperacion = o.TipoOperacion,
+            Detalle = o.Detalle.Any() ? o.Detalle.Select(d => d.Product.Name).ToList() : null,
+            Taller = o.Taller?.name,
+            FechaTurno = o.FechaTurno,
+            Estado = o.Estado,
+            OT = o.OT
+        });
+
+        return Ok(response);
+    }
+
+    private async Task ProcessRelatedFields(string uri, string[] fields, List<ContratosIdDto>? contratos, List<ConductorCuentaVehiculoDto>? conductores_Vehiculo)
     {
         var dataUri = new StringBuilder(uri);
         foreach (var field in fields)
