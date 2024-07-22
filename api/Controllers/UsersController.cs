@@ -43,7 +43,7 @@ public class UsersController : ControllerBase
             {
                 id = x.idCRM,
                 name = x.nombre + " " + x.apellido, //Mismo formato que otroga el CRM
-                empresaId = x.EmpresasAsignaciones.First().empresaId
+                empresaId = x.EmpresasAsignaciones.First().Empresa.idCRM
             })
             .ToList();
 
