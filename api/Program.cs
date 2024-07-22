@@ -4,6 +4,7 @@ using api.Connected_Services;
 using api.DataAccess;
 using api.Middleware;
 using api.Models.Entities;
+using api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
@@ -36,6 +37,7 @@ builder.Services.AddScoped<IRdaUnitOfWork, RdaUnitOfWork>();
 builder.Services.AddScoped<IRepositoryFactory, RepositoryFactory>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<CRMService>();
+builder.Services.AddScoped<IUserIdentityService, UserIdentityService>();
 
 ///// Adds Microsoft Identity platform (Azure AD B2C) support to protect this Api
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -65,6 +67,11 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
                     // Agregar roles a los claims
                     foreach (var role in user.Roles)
                         claimsIdentity.AddClaim(new Claim(claimsIdentity.RoleClaimType, role.Rol.nombreRol));
+
+                    foreach(var empresa in user.EmpresasAsignaciones)
+                    {
+                        claimsIdentity.AddClaim(new Claim("empresas", empresa.Empresa.idCRM));
+                    }
 
                     // // Agregar empresas a los claims
                     // foreach (var company in user.Companies)

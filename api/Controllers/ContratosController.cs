@@ -6,6 +6,7 @@ using api.DataAccess;
 using api.Exceptions;
 using api.Models.DTO.Contrato;
 using api.Models.Entities;
+using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,37 +18,21 @@ public class ContratosController : Controller
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IRdaUnitOfWork _unitOfWork;
     private readonly CRMService _crmService;
+    private readonly IUserIdentityService _identityService;
 
-    public ContratosController(IHttpClientFactory httpClientFactory, IRdaUnitOfWork unitOfWork, CRMService crmService)
+    public ContratosController(IUserIdentityService identityService, IHttpClientFactory httpClientFactory, IRdaUnitOfWork unitOfWork, CRMService crmService)
     {
         _httpClientFactory = httpClientFactory;
         _unitOfWork = unitOfWork;
         _crmService = crmService;
+        _identityService = identityService;
     }
 
     [HttpGet]
     [Authorize(Roles = "CONDUCTOR")]
     public async Task<IActionResult> GetContratos()
     {
-        var userId = User.Identity.Name; //TODO ver de donde sale el username o el ID
-
-        // get roles from User token
-        // TODO bonito, ponerlo en un Servicio, obtener cosas del contexto IHttpContextService
-        var roles = User.Claims.Where(x => x.Type == (User.Identity as ClaimsIdentity).RoleClaimType)
-            .Select(x => x.Value).ToList();
-
-        return Ok("chau");
-
-        var placeholder = 3;
-
-        var requestUser = _unitOfWork.GetRepository<User>().GetAll()
-            .Where(x => x.id == placeholder)
-            .SingleOrDefault();
-
-        if (requestUser == null)
-            throw new BadRequestException("No se encontró el usuario solicitante");
-
-        var empresasDisponibles = requestUser.EmpresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
+        var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
 
         var uri = new StringBuilder("crm/v2/Contratos?fields=id,Name,Cuenta");
         var json = await _crmService.Get(uri.ToString());
