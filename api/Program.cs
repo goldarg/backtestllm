@@ -11,30 +11,12 @@ using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-
-/////////
 ///// Adds Microsoft Identity platform (Azure AD B2C) support to protect this Api
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(options =>
         {
             builder.Configuration.Bind("AzureAdB2C", options);
             options.TokenValidationParameters.NameClaimType = "name";
-
-            // var existTokValidation = options.Events.OnTokenValidated;
-
-            // options.Events.OnTokenValidated = async context => {
-            //     try
-            //     {
-            //         await existTokValidation(context);
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         Console.WriteLine(ex);
-            //     }
-
-            // };
 
             options.Events = new JwtBearerEvents()
             {
@@ -55,9 +37,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                             var claimsIdentity = context.Principal.Identity as ClaimsIdentity;
                             // Agregar roles a los claims
                             foreach (var role in user.Roles)
-                            {
-                                claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role.Rol.nombreRol));
-                            }
+                                claimsIdentity.AddClaim(new Claim(claimsIdentity.RoleClaimType, role.Rol.nombreRol));
 
                             // // Agregar empresas a los claims
                             // foreach (var company in user.Companies)
@@ -68,25 +48,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     }
                 }
             };
-
-            // options.Events = new JwtBearerEvents()
-            // {
-            //     OnAuthenticationFailed = context =>
-            //     {
-            //         Console.WriteLine(context.Exception);
-
-            //         return Task.CompletedTask;
-            //     }
-            // };
         },
-    options => { builder.Configuration.Bind("AzureAdB2C", options); });
-// End of the Microsoft Identity platform block    
+        options => { builder.Configuration.Bind("AzureAdB2C", options); });
+
+
+// End of the Microsoft Identity platform block
 
 builder.Services.AddControllers();
-
-//////////////
-
-// builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -128,8 +96,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
-app.UseAuthorization();
 app.UseRouting();
+app.UseAuthorization();
 
 
 app.UseHttpsRedirection();
