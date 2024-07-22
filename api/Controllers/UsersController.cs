@@ -3,6 +3,7 @@ using api.Exceptions;
 using api.Models.DTO;
 using api.Models.DTO.Empresa;
 using api.Models.Entities;
+using api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
@@ -12,10 +13,12 @@ namespace api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IRdaUnitOfWork _unitOfWork;
+    private readonly IUserIdentityService _identityService;
 
-    public UsersController(IRdaUnitOfWork unitOfWork)
+    public UsersController(IUserIdentityService identityService, IRdaUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
+        _identityService = identityService;
     }
 
     [HttpGet]
@@ -31,21 +34,11 @@ public class UsersController : ControllerBase
     [Route("GetConductores")]
     public IActionResult GetConductores()
     {
-        var userId = User.Identity.Name; //TODO ver de donde sale el username o el ID
-        var placeholder = 3;
-        var empresasAsignaciones = _unitOfWork.GetRepository<User>().GetAll()
-            .Where(x => x.id == placeholder)
-            .Select(x => x.EmpresasAsignaciones)
-            .SingleOrDefault();
-
-        if (empresasAsignaciones == null)
-            throw new BadRequestException("No se encontró el usuario solicitante");
-
-        var empresasDisponibles = empresasAsignaciones.Select(x => x.empresaId).ToList();
+        var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
 
         var conductores = _unitOfWork.GetRepository<User>().GetAll()
             .Where(u => u.Roles.Any(reg => reg.Rol.nombreRol == "CONDUCTOR") &&
-            u.EmpresasAsignaciones.Any(ea => empresasDisponibles.Contains(ea.empresaId)))
+            u.EmpresasAsignaciones.Any(ea => empresasDisponibles.Contains(ea.Empresa.idCRM)))
             .Select(x => new
             {
                 id = x.idCRM,
