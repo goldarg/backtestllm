@@ -3,6 +3,9 @@ namespace api.Models.Entities;
 public class User
 {
     public int id { get; set; }
+    /// <summary>
+    /// Correo electrónico del usuario
+    /// </summary>
     public string? userName { get; set; }
     public string? nombre { get; set; }
     public string? apellido { get; set; }
