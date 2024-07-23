@@ -24,7 +24,7 @@ public class RolesController : ControllerBase
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetAll()
     {
-        var roles = _userIdentityService.ListarRolesInferiores(User, _unitOfWork);
+        var roles = _userIdentityService.ListarRolesInferiores(User);
         var rta = roles.Select(x => new { x.id, x.nombreRol });
         return Ok(rta);
     }
