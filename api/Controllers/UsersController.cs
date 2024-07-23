@@ -6,11 +6,13 @@ using api.Exceptions;
 using api.Models.DTO;
 using api.Models.DTO.Conductor;
 using api.Models.DTO.Empresa;
+using api.Models.DTO.Rol;
 using api.Models.Entities;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace api.Controllers;
 
@@ -35,7 +37,8 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> GetListaUsuarios()
     {
         var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
-        var forbiddenRoles = _identityService.ListarRolesSuperiores(User);
+        var topeJerarquia = _identityService.ListarRolesSuperiores(User)
+            .Max(x => x.jerarquia);
 
         //Obtengo los datos necesarios
         var uri = new StringBuilder("crm/v2/Contacts?fields=id,Full_Name,Cargo");
@@ -43,27 +46,77 @@ public class UsersController : ControllerBase
         var json = await _crmService.Get(uri.ToString());
         var conductoresCrm = JsonSerializer.Deserialize<List<ConductorDto>>(json);
 
+        //Get conductores de la DB y joineo con sus roles y empresas
         var conductoresDb = _unitOfWork.GetRepository<User>().GetAll()
             .Where(x => conductoresCrm.Select(y => y.id).ToList().Contains(x.idCRM)
-                && x.Roles.All(x => !forbiddenRoles.Contains(x.Rol)) //Si tiene 1 rol superior, no se muestra
-            ).ToList();
+                && x.Roles.All(x => x.Rol.jerarquia < topeJerarquia) //Si tiene 1 rol superior o igual, no va
+                && x.EmpresasAsignaciones.Any(x => empresasDisponibles.Contains(x.Empresa.idCRM))
+            )
+            .Select(x => new {
+                idCRM = x.idCRM,
+                Roles = x.Roles.Select(x => new RolDto
+                {
+                    Id = x.Rol.id,
+                    NombreRol = x.Rol.nombreRol
+                }).ToList(),
+                Empresas = x.EmpresasAsignaciones.Select(x => new EmpresaDto
+                {
+                    idCRM = x.Empresa.idCRM,
+                    razonSocial = x.Empresa.razonSocial
+                }).ToList()
+            })
+            .ToList();
 
-        conductoresCrm.Join(conductoresDb, crm => crm.id, db => db.idCRM, (crm, db) => 
+        //Con este "inner join" estoy filtrando del CRM los users que no tienen la empresa o roles
+        var result = conductoresCrm.Join(conductoresDb, crm => crm.id, db => db.idCRM, (crm, db) => 
         {
-            crm.Roles = 
+            crm.Roles = db.Roles;
+            crm.Empresas = db.Empresas;
+            return crm;
         }).ToList();
 
-        //Empresas de cada contacto
-        //Roles de cada contacto
+        var vehiculosConductores = new List<ConductorVehiculoDto>();
+        var conductoresCrmIds = result.Select(x => x.id).ToList();
 
-        //Filtro segun roles del usuario
-            //Si es RDA saltea
-
-        //Filtro segun empresas del usuario
-            //Si es RDA saltea
+        await Task.WhenAll(
+            // Alquileres
+            ProcessRelatedFields("crm/v2/Alquileres?fields=", ["Dominio_Alquiler", "Conductor", "Contrato", "Estado", "id", "Fecha_de_Devolucion"], conductoresCrmIds, vehiculosConductores),
+            // Servicios
+            ProcessRelatedFields("crm/v2/Servicios_RDA?fields=", ["Dominio", "Conductor", "Contrato", "Estado", "id", "Fin_de_servicio"], conductoresCrmIds, vehiculosConductores),
+            // Renting
+            ProcessRelatedFields("crm/v2/Renting?fields=", ["Conductor", "Dominio"], conductoresCrmIds, vehiculosConductores)
+        );
 
         return Ok(3);
     }
+
+    private async Task ProcessRelatedFields(string uri, string[] fields, List<string> conductoresIds, List<ConductorVehiculoDto> vehiculosConductores)
+    {
+        var dataUri = new StringBuilder(uri);
+        foreach (var field in fields)
+        {
+            dataUri.Append(field).Append(",");
+        }
+
+        var jsonData = await _crmService.Get(dataUri.ToString().TrimEnd(','));
+        var dataArray = JArray.Parse(jsonData);
+
+        foreach (var item in dataArray)
+        {
+            var conductor = item[0].ToObject<CRMRelatedObject>();
+            if (!conductoresIds.Any(c => c == conductor.id))
+                return;
+
+            var dominio = item[fields[1]].ToObject<CRMRelatedObject>();
+
+            vehiculosConductores.Add(new ConductorVehiculoDto
+            {
+                conductorCrmId = conductor.id,
+                vehiculo = dominio
+            });
+        }
+    }
+
 
     [HttpGet]
     [Route("GetConductores")]
