@@ -1,4 +1,5 @@
 using api.DataAccess;
+using api.Models.DTO.Rol;
 using api.Models.Entities;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +26,11 @@ public class RolesController : ControllerBase
     public IActionResult GetAll()
     {
         var roles = _userIdentityService.ListarRolesInferiores(User);
-        var rta = roles.Select(x => new { x.id, x.nombreRol });
+        var rta = roles.Select(x => new RolDto
+        {
+            Id = x.id,
+            NombreRol = x.nombreRol
+        });
         return Ok(rta);
     }
 
