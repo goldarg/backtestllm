@@ -7,9 +7,7 @@ namespace api.Models.DTO.Empresa
 {
     public class EmpresaDto
     {
-        public int id { get; set; }
-        public string razonSocial { get; set; }
-        public string idCRM { get; set; }
-        
+        public string? RazonSocial { get; set; }
+        public string? IdCRM { get; set; }
     }
 }
