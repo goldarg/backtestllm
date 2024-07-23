@@ -18,6 +18,7 @@ namespace api.DataAccess.Configurators
             builder.Property(x => x.id).IsRequired().HasColumnName("id").HasColumnType("int");
             builder.Property(x => x.nombreRol).IsRequired().HasColumnName("razonSocial").HasColumnType("nvarchar").HasMaxLength(150);
             builder.Property(x => x.guid).IsRequired().HasColumnName("guid").HasColumnType("uniqueidentifier").IsRequired();
+            builder.Property(x => x.jerarquia).HasColumnName("jerarquia").HasColumnType("int").HasDefaultValue(0);
         }
     }
 }
