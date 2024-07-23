@@ -68,29 +68,35 @@ public class UsersController : ControllerBase
             .ToList();
 
         //Con este "inner join" estoy filtrando del CRM los users que no tienen la empresa o roles
-        var result = conductoresCrm.Join(conductoresDb, crm => crm.id, db => db.idCRM, (crm, db) => 
+        var conductoresPermisosMatch = conductoresCrm.Join(conductoresDb, crm => crm.id, db => db.idCRM, (crm, db) => 
         {
             crm.Roles = db.Roles;
             crm.Empresas = db.Empresas;
+            crm.Estado = "Placeholder";
             return crm;
         }).ToList();
 
         var vehiculosConductores = new List<ConductorVehiculoDto>();
-        var conductoresCrmIds = result.Select(x => x.id).ToList();
+        var conductoresCrmIds = conductoresPermisosMatch.Select(x => x.id).ToList();
 
         await Task.WhenAll(
             // Alquileres
-            ProcessRelatedFields("crm/v2/Alquileres?fields=", ["Dominio_Alquiler", "Conductor", "Contrato", "Estado", "id", "Fecha_de_Devolucion"], conductoresCrmIds, vehiculosConductores),
+            GetVehiculosPorUsuario("crm/v2/Alquileres?fields=", ["Conductor", "Dominio_Alquiler"], conductoresCrmIds, vehiculosConductores),
             // Servicios
-            ProcessRelatedFields("crm/v2/Servicios_RDA?fields=", ["Dominio", "Conductor", "Contrato", "Estado", "id", "Fin_de_servicio"], conductoresCrmIds, vehiculosConductores),
+            GetVehiculosPorUsuario("crm/v2/Servicios_RDA?fields=", ["Conductor", "Dominio"], conductoresCrmIds, vehiculosConductores),
             // Renting
-            ProcessRelatedFields("crm/v2/Renting?fields=", ["Conductor", "Dominio"], conductoresCrmIds, vehiculosConductores)
+            GetVehiculosPorUsuario("crm/v2/Renting?fields=", ["Conductor", "Dominio"], conductoresCrmIds, vehiculosConductores)
         );
 
-        return Ok(3);
+        var result = conductoresPermisosMatch.Join(vehiculosConductores, r => r.id, v => v.conductorCrmId, (r,v) => {
+                r.VehiculosAsignados.Add(v.vehiculo);
+            return r;
+        }).ToList();
+
+        return Ok(result);
     }
 
-    private async Task ProcessRelatedFields(string uri, string[] fields, List<string> conductoresIds, List<ConductorVehiculoDto> vehiculosConductores)
+    private async Task GetVehiculosPorUsuario(string uri, string[] fields, List<string> conductoresIds, List<ConductorVehiculoDto> vehiculosConductores)
     {
         var dataUri = new StringBuilder(uri);
         foreach (var field in fields)
@@ -103,7 +109,7 @@ public class UsersController : ControllerBase
 
         foreach (var item in dataArray)
         {
-            var conductor = item[0].ToObject<CRMRelatedObject>();
+            var conductor = item[fields[0]].ToObject<CRMRelatedObject>();
             if (!conductoresIds.Any(c => c == conductor.id))
                 return;
 
