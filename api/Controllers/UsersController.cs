@@ -9,6 +9,7 @@ using api.Models.DTO.Empresa;
 using api.Models.Entities;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
@@ -34,7 +35,7 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> GetListaUsuarios()
     {
         var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
-        var rolesDisponibles = _identityService.ListarRolesDelUsuario(User);
+        var forbiddenRoles = _identityService.ListarRolesSuperiores(User);
 
         //Obtengo los datos necesarios
         var uri = new StringBuilder("crm/v2/Contacts?fields=id,Full_Name,Cargo");
@@ -43,7 +44,14 @@ public class UsersController : ControllerBase
         var conductoresCrm = JsonSerializer.Deserialize<List<ConductorDto>>(json);
 
         var conductoresDb = _unitOfWork.GetRepository<User>().GetAll()
-            .Where(x => conductoresCrm.Select(y => y.id).ToList().Contains(x.idCRM)).ToList();
+            .Where(x => conductoresCrm.Select(y => y.id).ToList().Contains(x.idCRM)
+                && x.Roles.All(x => !forbiddenRoles.Contains(x.Rol)) //Si tiene 1 rol superior, no se muestra
+            ).ToList();
+
+        conductoresCrm.Join(conductoresDb, crm => crm.id, db => db.idCRM, (crm, db) => 
+        {
+            crm.Roles = 
+        }).ToList();
 
         //Empresas de cada contacto
         //Roles de cada contacto
