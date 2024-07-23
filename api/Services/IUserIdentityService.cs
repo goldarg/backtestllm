@@ -14,6 +14,8 @@ namespace api.Services
         string[] ListarEmpresasDelUsuario(ClaimsPrincipal user);
         bool UsuarioPoseeRol(ClaimsPrincipal user, string rol);
         bool UsuarioPoseeEmpresa(ClaimsPrincipal user, string empresa);
-        Rol[] ListarRolesInferiores(ClaimsPrincipal user, IRdaUnitOfWork unitOfWork);
+        Rol[] ListarRolesInferiores(ClaimsPrincipal user);
+        Rol[] ListarRolesSuperiores(ClaimsPrincipal user);
+        int GetJerarquiaRolMayor(ClaimsPrincipal user);
     }
 }
