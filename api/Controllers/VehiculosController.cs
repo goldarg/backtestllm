@@ -8,6 +8,7 @@ using api.Models.DTO;
 using api.Models.DTO.Vehiculo;
 using api.Models.Entities;
 using api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 
@@ -80,6 +81,7 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
     public async Task<IActionResult> GetVehiculos()
     {
         var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);

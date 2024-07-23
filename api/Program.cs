@@ -68,7 +68,7 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
                     foreach (var role in user.Roles)
                         claimsIdentity.AddClaim(new Claim(claimsIdentity.RoleClaimType, role.Rol.nombreRol));
 
-                    foreach(var empresa in user.EmpresasAsignaciones)
+                    foreach (var empresa in user.EmpresasAsignaciones)
                     {
                         claimsIdentity.AddClaim(new Claim("empresas", empresa.Empresa.idCRM));
                     }
