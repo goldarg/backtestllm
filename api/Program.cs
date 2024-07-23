@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using api.Connected_Services;
 using api.DataAccess;
+using api.Logic;
 using api.Middleware;
 using api.Models.Entities;
 using api.Services;
@@ -36,6 +37,7 @@ builder.Services.AddDbContext<RdaDbContext>(options =>
 builder.Services.AddScoped<IRdaUnitOfWork, RdaUnitOfWork>();
 builder.Services.AddScoped<IRepositoryFactory, RepositoryFactory>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<VehiculosLogica>();
 builder.Services.AddScoped<CRMService>();
 builder.Services.AddScoped<IUserIdentityService, UserIdentityService>();
 
