@@ -1,6 +1,10 @@
+using System.Text;
+using System.Text.Json;
+using api.Connected_Services;
 using api.DataAccess;
 using api.Exceptions;
 using api.Models.DTO;
+using api.Models.DTO.Conductor;
 using api.Models.DTO.Empresa;
 using api.Models.Entities;
 using api.Services;
@@ -15,11 +19,42 @@ public class UsersController : ControllerBase
 {
     private readonly IRdaUnitOfWork _unitOfWork;
     private readonly IUserIdentityService _identityService;
+    private readonly CRMService _crmService;
 
-    public UsersController(IUserIdentityService identityService, IRdaUnitOfWork unitOfWork)
+    public UsersController(CRMService crmService, IUserIdentityService identityService, IRdaUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
         _identityService = identityService;
+        _crmService = crmService;
+    }
+
+    [HttpGet]
+    [Route("GetListaUsuarios")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN,CONDUCTOR")]
+    public async Task<IActionResult> GetListaUsuarios()
+    {
+        var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
+        var rolesDisponibles = _identityService.ListarRolesDelUsuario(User);
+
+        //Obtengo los datos necesarios
+        var uri = new StringBuilder("crm/v2/Contacts?fields=id,Full_Name,Cargo");
+
+        var json = await _crmService.Get(uri.ToString());
+        var conductoresCrm = JsonSerializer.Deserialize<List<ConductorDto>>(json);
+
+        var conductoresDb = _unitOfWork.GetRepository<User>().GetAll()
+            .Where(x => conductoresCrm.Select(y => y.id).ToList().Contains(x.idCRM)).ToList();
+
+        //Empresas de cada contacto
+        //Roles de cada contacto
+
+        //Filtro segun roles del usuario
+            //Si es RDA saltea
+
+        //Filtro segun empresas del usuario
+            //Si es RDA saltea
+
+        return Ok(3);
     }
 
     [HttpGet]
