@@ -10,6 +10,7 @@ namespace api.Services
 {
     public class UserIdentityService : IUserIdentityService
     {
+        //Devuelve todos los nombreRol de los roles asignados al usuario
         public string[] ListarRolesDelUsuario(ClaimsPrincipal user)
         {
             var claimIdentity = user.Identity as ClaimsIdentity;
@@ -23,6 +24,7 @@ namespace api.Services
             return roles;
         }
 
+        //Devuelve todos los CrmId de las empresas que posee el usuario
         public string[] ListarEmpresasDelUsuario(ClaimsPrincipal user)
         {
             var claimIdentity = user.Identity as ClaimsIdentity;
@@ -36,6 +38,7 @@ namespace api.Services
             return roles;
         }
 
+        //Devuelve si el usuario tiene o no el claim del nombreRol
         public bool UsuarioPoseeRol(ClaimsPrincipal user, string rol)
         {
             var claimIdentity = user.Identity as ClaimsIdentity;
@@ -46,6 +49,7 @@ namespace api.Services
                 .Select(x => x.Value).Any(x => x == rol);
         }
 
+        //Devuelve si el usuario tiene o no el claim al CrmId de la empresa
         public bool UsuarioPoseeEmpresa(ClaimsPrincipal user, string empresa)
         {
             var claimIdentity = user.Identity as ClaimsIdentity;
@@ -56,19 +60,40 @@ namespace api.Services
                 .Select(x => x.Value).Any(x => x == empresa);
         }
 
-        public Rol[] ListarRolesInferiores(ClaimsPrincipal user, IRdaUnitOfWork unitOfWork)
+        //Devuelve la Jerarquia del Rol mas alto del usuario
+        public int GetJerarquiaRolMayor(ClaimsPrincipal user, IRdaUnitOfWork unitOfWork)
         {
             var rolesUsuario = ListarRolesDelUsuario(user);
             if (rolesUsuario == null || !rolesUsuario.Any())
-                return Array.Empty<Rol>();
+                return 0;
 
-            // Obtener el rol con mayor jerarquía que tiene el usuario
-            var rolConMayorJerarquia = unitOfWork.GetRepository<Rol>()
+            var jerarquiaRolMayor = unitOfWork.GetRepository<Rol>()
                 .GetAll()
                 .Where(r => rolesUsuario.Contains(r.nombreRol))
                 .OrderByDescending(r => r.jerarquia)
-                .Select(r => r.jerarquia)
+                .Select(x => x.jerarquia)
                 .FirstOrDefault();
+
+            return jerarquiaRolMayor;
+        }
+
+        //Lista los roles superiores, INCLUYENDO al mayor rol, del usario
+        public Rol[] ListarRolesSuperiores(ClaimsPrincipal user, IRdaUnitOfWork unitOfWork)
+        {
+            var rolConMayorJerarquia = GetJerarquiaRolMayor(user, unitOfWork);
+            
+            // Obtener todos los roles inferiores a rolConMayorJerarquia.jerarquia
+            var rolesSuperiores = unitOfWork.GetRepository<Rol>()
+                .GetAll()
+                .Where(r => r.jerarquia >= rolConMayorJerarquia)
+                .ToArray();
+
+            return rolesSuperiores;
+        }
+
+        public Rol[] ListarRolesInferiores(ClaimsPrincipal user, IRdaUnitOfWork unitOfWork)
+        {
+            var rolConMayorJerarquia = GetJerarquiaRolMayor(user, unitOfWork);
 
             if (rolConMayorJerarquia == 0)
                 return Array.Empty<Rol>();
