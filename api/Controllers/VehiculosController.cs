@@ -9,6 +9,8 @@ using api.Models.DTO;
 using api.Models.DTO.Operaciones;
 using api.Models.DTO.Vehiculo;
 using api.Models.Entities;
+using api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.ObjectPool;
@@ -24,17 +26,20 @@ public class VehiculosController : ControllerBase
     private readonly CRMService _crmService;
     private readonly IRdaUnitOfWork _unitOfWork;
     private readonly VehiculosLogica _logica;
+    private readonly IUserIdentityService _identityService;
 
-    public VehiculosController(IRdaUnitOfWork unitOfWork, IHttpClientFactory httpClientFactory, CRMService crmService)
+    public VehiculosController(IUserIdentityService identityService, IRdaUnitOfWork unitOfWork, IHttpClientFactory httpClientFactory, CRMService crmService)
     {
         _unitOfWork = unitOfWork;
         _httpClientFactory = httpClientFactory;
         _logica = new VehiculosLogica(_httpClientFactory);
         _crmService = crmService;
+        _identityService = identityService;
     }
 
     [HttpPost]
     [Route("AsignarVehiculo")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public async Task<IActionResult> AsignarVehiculo([FromBody] AsignarVehiculoDto asignarVehiculoDto)
     {
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
@@ -81,21 +86,10 @@ public class VehiculosController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
     public async Task<IActionResult> GetVehiculos()
     {
-        // TODO: Obtener id/empresa/username del usuario
-        var userId = 3; //Placeholder por ahora
-
-        //Busco el usuario y las empresas que puede ver
-        var empresasAsignaciones = _unitOfWork.GetRepository<User>().GetAll()
-            .Where(x => x.id == userId)
-            .Select(x => x.EmpresasAsignaciones)
-            .SingleOrDefault();
-
-        if (empresasAsignaciones == null)
-            throw new BadRequestException("No se encontró el usuario solicitante");
-
-        var empresasDisponibles = empresasAsignaciones.Select(x => x.Empresa.idCRM).ToList();
+        var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
 
         //Get a Vehiculos con los datos que necesito
         var uri = new StringBuilder("crm/v2/Vehiculos?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta," +
@@ -225,8 +219,8 @@ public class VehiculosController : ControllerBase
             if (!contratos.Any(c => c.id == contrato.id))
                 return;
 
-            var conductor = item[fields[1]].ToObject<CRMRelatedObject>();
             var dominio = item[fields[0]].ToObject<CRMRelatedObject>();
+            var conductor = item[fields[1]].ToObject<CRMRelatedObject>();
             var estado = item[fields[3]].ToObject<string>();
             var contratoIdInterno = item[fields[4]].ToObject<string>();
             var fechaFinContratoInterno = item[fields[5]].ToObject<DateTime?>();

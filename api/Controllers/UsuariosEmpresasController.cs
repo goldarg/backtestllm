@@ -1,11 +1,13 @@
 using api.DataAccess;
 using api.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
 
 [Route("api/usuariosEmpresas")]
 [ApiController]
+[Authorize(Roles = "RDA")]
 public class UsuariosEmpresasController : ControllerBase
 {
     private readonly IRdaUnitOfWork _unitOfWork;

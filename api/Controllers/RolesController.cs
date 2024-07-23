@@ -1,5 +1,8 @@
 using api.DataAccess;
+using api.Models.DTO.Rol;
 using api.Models.Entities;
+using api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
@@ -9,22 +12,31 @@ namespace api.Controllers;
 public class RolesController : ControllerBase
 {
     private readonly IRdaUnitOfWork _unitOfWork;
+    private readonly IUserIdentityService _userIdentityService;
 
-    public RolesController(IRdaUnitOfWork unitOfWork)
+    public RolesController(IRdaUnitOfWork unitOfWork, IUserIdentityService userIdentityService)
     {
         _unitOfWork = unitOfWork;
+        _userIdentityService = userIdentityService;
     }
 
+
     [HttpGet]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetAll()
     {
-        var permisos = _unitOfWork.GetRepository<Rol>().GetAll()
-            .ToList();
-
-        return Ok(permisos);
+        var roles = _userIdentityService.ListarRolesInferiores(User);
+        var rta = roles.Select(x => new RolDto
+        {
+            Id = x.id,
+            NombreRol = x.nombreRol
+        });
+        return Ok(rta);
     }
 
     [HttpGet("{id}")]
+    // TODO ESTO NECESITA IMPLEMENTAR JERARQUIA DE ROLES
+    [Authorize(Roles = "RDA")]
     public IActionResult GetById([FromRoute] int id)
     {
         var permiso = _unitOfWork.GetRepository<Rol>().GetById(id);
