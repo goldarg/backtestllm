@@ -1,5 +1,6 @@
 using api.DataAccess;
 using api.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
@@ -16,6 +17,8 @@ public class RolesController : ControllerBase
     }
 
     [HttpGet]
+    // TODO ESTO NECESITA IMPLEMENTAR JERARQUIA DE ROLES
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetAll()
     {
         var permisos = _unitOfWork.GetRepository<Rol>().GetAll()
@@ -25,6 +28,8 @@ public class RolesController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    // TODO ESTO NECESITA IMPLEMENTAR JERARQUIA DE ROLES
+    [Authorize(Roles = "RDA")]
     public IActionResult GetById([FromRoute] int id)
     {
         var permiso = _unitOfWork.GetRepository<Rol>().GetById(id);

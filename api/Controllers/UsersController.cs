@@ -4,6 +4,7 @@ using api.Models.DTO;
 using api.Models.DTO.Empresa;
 using api.Models.Entities;
 using api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
@@ -22,16 +23,8 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll()
-    {
-        var users = _unitOfWork.GetRepository<User>().GetAll()
-            .ToList();
-
-        return Ok(users);
-    }
-
-    [HttpGet]
     [Route("GetConductores")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetConductores()
     {
         var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
@@ -51,6 +44,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetById([FromRoute] int id)
     {
         var user = _unitOfWork.GetRepository<User>().GetAll()

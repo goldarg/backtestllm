@@ -35,6 +35,7 @@ public class VehiculosController : ControllerBase
 
     [HttpPost]
     [Route("AsignarVehiculo")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public async Task<IActionResult> AsignarVehiculo([FromBody] AsignarVehiculoDto asignarVehiculoDto)
     {
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");

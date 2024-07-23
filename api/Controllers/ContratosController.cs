@@ -29,7 +29,7 @@ public class ContratosController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "CONDUCTOR")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public async Task<IActionResult> GetContratos()
     {
         var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);

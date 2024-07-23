@@ -1,6 +1,7 @@
 using api.DataAccess;
 using api.Models.DTO;
 using api.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers;
@@ -17,6 +18,7 @@ public class EmpresasController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetAll()
     {
         var empresas = _unitOfWork.GetRepository<Empresa>().GetAll()
@@ -31,6 +33,7 @@ public class EmpresasController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetById([FromRoute] int id)
     {
         var empresa = _unitOfWork.GetRepository<Empresa>().GetById(id);
