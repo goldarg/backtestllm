@@ -1,19 +1,15 @@
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using api.Connected_Services;
 using api.DataAccess;
 using api.Exceptions;
 using api.Logic;
 using api.Models.DTO;
-using api.Models.DTO.Operaciones;
 using api.Models.DTO.Vehiculo;
 using api.Models.Entities;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
-using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json.Linq;
 
 namespace api.Controllers;
