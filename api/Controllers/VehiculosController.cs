@@ -21,14 +21,12 @@ public class VehiculosController : ControllerBase
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly CRMService _crmService;
     private readonly IRdaUnitOfWork _unitOfWork;
-    private readonly VehiculosLogica _logica;
     private readonly IUserIdentityService _identityService;
 
     public VehiculosController(IUserIdentityService identityService, IRdaUnitOfWork unitOfWork, IHttpClientFactory httpClientFactory, CRMService crmService)
     {
         _unitOfWork = unitOfWork;
         _httpClientFactory = httpClientFactory;
-        _logica = new VehiculosLogica(_httpClientFactory);
         _crmService = crmService;
         _identityService = identityService;
     }

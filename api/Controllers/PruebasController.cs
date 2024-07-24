@@ -103,12 +103,8 @@ public class PruebasController : ControllerBase
     [HttpGet]
     public IActionResult GetContactsCrm()
     {
-        // User.Identity.Name;
-        var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+        var test = _unitOfWork.GetRepository<User>().GetAll().ToList();
 
-        var response = httpClient.GetAsync("crm/v2/Contacts").Result;
-        var json = response.Content.ReadAsStringAsync().Result;
-
-        return Ok(json);
+        return Ok(test);
     }
 }
