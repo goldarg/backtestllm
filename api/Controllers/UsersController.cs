@@ -61,8 +61,8 @@ public class UsersController : ControllerBase
                 }).ToList(),
                 Empresas = x.EmpresasAsignaciones.Select(x => new EmpresaDto
                 {
-                    idCRM = x.Empresa.idCRM,
-                    razonSocial = x.Empresa.razonSocial
+                    IdCRM = x.Empresa.idCRM,
+                    RazonSocial = x.Empresa.razonSocial
                 }).ToList()
             })
             .ToList();
