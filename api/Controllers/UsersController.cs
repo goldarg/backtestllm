@@ -258,7 +258,7 @@ public class UsersController : ControllerBase
         };
         var jsonData = JsonSerializer.Serialize(jsonObj);
         var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-        var response = await httpClient.PatchAsync($"crm/v2/Contacts/upsert", content);
+        var response = await httpClient.PostAsync($"crm/v2/Contacts/upsert", content);
         var responseString = await response.Content.ReadAsStringAsync();
         var apiResponse = JsonSerializer.Deserialize<ApiResponse>(responseString);
 
@@ -281,6 +281,7 @@ public class UsersController : ControllerBase
         }
 
         user.estado = EstadosUsuario.inactivo;
+        _unitOfWork.GetRepository<User>().Update(user);
         _unitOfWork.SaveChanges();
 
         return Ok();
