@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using api.Configuration;
@@ -226,6 +227,58 @@ public class UsersController : ControllerBase
             return NotFound();
 
         return Ok(user);
+    }
+
+    [HttpPost("DesactivarUsuario/{usuarioCrmId}")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
+    public async Task<IActionResult> DesactivarUsuario(string usuarioCrmId)
+    {
+        var maxJerarquiaRequest = _userIdentityService.GetJerarquiaRolMayor(User);
+        //Valido que exista en la DB, luego cambio en CRM, luego inactivo en la DB
+
+        var user = _unitOfWork
+            .GetRepository<User>()
+            .GetAll()
+            .Where(x => x.idCRM == usuarioCrmId)
+            .SingleOrDefault();
+
+        if (user == null)
+            throw new BadRequestException("No se encontró el usuario a eliminar");
+
+        var targetMaxJerarquia =
+            user.Roles.Count() > 0 ? user.Roles?.Max(x => x.Rol.jerarquia) : -1;
+        if (targetMaxJerarquia >= maxJerarquiaRequest)
+            throw new BadRequestException("No se poseen permisos para modificar este usuario");
+
+        var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+        var jsonObj = new { data = new[] { new { id = usuarioCrmId, Estado_Mirai = "Inactivo" } } };
+        var jsonData = JsonSerializer.Serialize(jsonObj);
+        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var response = await httpClient.PatchAsync($"crm/v2/Contacts/upsert", content);
+        var responseString = await response.Content.ReadAsStringAsync();
+        var apiResponse = JsonSerializer.Deserialize<ApiResponse>(responseString);
+
+        if (apiResponse == null || apiResponse.data == null || apiResponse.data.Count == 0)
+            throw new BadRequestException("Respuesta inválida del CRM");
+
+        var responseData = apiResponse.data[0];
+        if (responseData.status != "success")
+        {
+            switch (responseData.code)
+            {
+                case "DUPLICATE_DATA":
+                    throw new BadRequestException(
+                        "No se encontró, o no existe, el usuario a editar en el CRM"
+                    );
+                default:
+                    // TODO habria que loggear responseData.message
+                    throw new BadRequestException("Error al editar el usuario en CRM");
+            }
+        }
+        user.activo = false;
+        _unitOfWork.SaveChanges();
+
+        return Ok();
     }
 
     [HttpPost]
