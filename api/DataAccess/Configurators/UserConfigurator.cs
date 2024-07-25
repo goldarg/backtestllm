@@ -27,20 +27,20 @@ namespace api.DataAccess.Configurators
                 .Property(x => x.nombre)
                 .IsRequired()
                 .HasColumnName("nombre")
-                .HasColumnType("nvarhar")
+                .HasColumnType("nvarchar")
                 .HasMaxLength(100);
             builder
                 .Property(x => x.apellido)
                 .IsRequired()
                 .HasColumnName("apellido")
-                .HasColumnType("nvarhar")
+                .HasColumnType("nvarchar")
                 .HasMaxLength(100);
             builder
-                .Property(x => x.activo)
+                .Property(x => x.estado)
                 .IsRequired()
-                .HasColumnName("activo")
-                .HasColumnType("bit")
-                .HasDefaultValue(1);
+                .HasColumnName("estado")
+                .HasColumnType("nvarchar")
+                .HasMaxLength(200);
             builder
                 .Property(x => x.guid)
                 .IsRequired()
@@ -50,7 +50,7 @@ namespace api.DataAccess.Configurators
             builder
                 .Property(x => x.isRDA)
                 .IsRequired()
-                .HasColumnName("guid")
+                .HasColumnName("isRDA")
                 .HasColumnType("bit")
                 .HasDefaultValue(1);
             builder
@@ -59,7 +59,13 @@ namespace api.DataAccess.Configurators
                 .HasColumnName("idCRM")
                 .HasColumnType("nvarchar")
                 .HasMaxLength(100);
+            builder
+                .Property(x => x.telefono)
+                .HasColumnName("telefono")
+                .HasColumnType("nvarchar")
+                .HasMaxLength(100);
 
+            //Relaciones
             builder
                 .HasMany(x => x.EmpresasAsignaciones)
                 .WithOne(u => u.User)

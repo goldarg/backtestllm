@@ -35,6 +35,7 @@ namespace api.DataAccess.Configurators
                 .HasColumnType("nvarchar")
                 .HasMaxLength(100);
 
+            //Relaciones
             builder
                 .HasMany(e => e.Asignaciones)
                 .WithOne(ue => ue.Empresa)
