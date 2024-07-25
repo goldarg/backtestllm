@@ -68,7 +68,7 @@ public class UsersController : ControllerBase
             .ToList();
 
         //Con este "inner join" estoy filtrando del CRM los users que no tienen la empresa o roles
-        var conductoresPermisosMatch = conductoresCrm.Join(conductoresDb, crm => crm.id, db => db.idCRM, (crm, db) => 
+        var conductoresPermisosMatch = conductoresCrm.Join(conductoresDb, crm => crm.id, db => db.idCRM, (crm, db) =>
         {
             crm.Roles = db.Roles;
             crm.Empresas = db.Empresas;
@@ -88,10 +88,27 @@ public class UsersController : ControllerBase
             GetVehiculosPorUsuario("crm/v2/Renting?fields=", ["Conductor", "Dominio"], conductoresCrmIds, vehiculosConductores)
         );
 
-        var result = conductoresPermisosMatch.Join(vehiculosConductores, r => r.id, v => v.conductorCrmId, (r,v) => {
-                r.VehiculosAsignados.Add(v.vehiculo);
-            return r;
-        }).ToList();
+        var result = conductoresPermisosMatch
+        .GroupJoin(vehiculosConductores,
+            r => r.id,
+            v => v.conductorCrmId,
+            (r, vs) => new
+            {
+                ConductorPermiso = r,
+                Vehiculos = vs
+            })
+        .SelectMany(
+            x => x.Vehiculos.DefaultIfEmpty(),
+            (x, v) =>
+            {
+                if (v != null)
+                {
+                    x.ConductorPermiso.VehiculosAsignados.Add(v.vehiculo);
+                }
+                return x.ConductorPermiso;
+            })
+        .Distinct()
+        .ToList();
 
         return Ok(result);
     }
@@ -109,9 +126,12 @@ public class UsersController : ControllerBase
 
         foreach (var item in dataArray)
         {
+            if (!item[fields[0]].HasValues || !item[fields[1]].HasValues)
+                continue;
+
             var conductor = item[fields[0]].ToObject<CRMRelatedObject>();
             if (!conductoresIds.Any(c => c == conductor.id))
-                return;
+                continue;
 
             var dominio = item[fields[1]].ToObject<CRMRelatedObject>();
 

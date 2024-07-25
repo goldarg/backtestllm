@@ -158,7 +158,7 @@ public class VehiculosController : ControllerBase
         {
             var contrato = item[fields[2]].ToObject<CRMRelatedObject>();
             if (!contratos.Any(c => c.id == contrato.id))
-                return;
+                continue;
 
             var dominio = item[fields[0]].ToObject<CRMRelatedObject>();
             var conductor = item[fields[1]].ToObject<CRMRelatedObject>();
