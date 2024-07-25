@@ -36,10 +36,10 @@ namespace api.DataAccess.Configurators
                 .HasColumnType("nvarhar")
                 .HasMaxLength(100);
             builder
-                .Property(x => x.activo)
+                .Property(x => x.estadoId)
                 .IsRequired()
-                .HasColumnName("activo")
-                .HasColumnType("bit")
+                .HasColumnName("estadoId")
+                .HasColumnType("int")
                 .HasDefaultValue(1);
             builder
                 .Property(x => x.guid)
@@ -59,11 +59,23 @@ namespace api.DataAccess.Configurators
                 .HasColumnName("idCRM")
                 .HasColumnType("nvarchar")
                 .HasMaxLength(100);
+            builder
+                .Property(x => x.telefono)
+                .HasColumnName("telefono")
+                .HasColumnType("nvarchar")
+                .HasMaxLength(100);
 
+            //Relaciones
             builder
                 .HasMany(x => x.EmpresasAsignaciones)
                 .WithOne(u => u.User)
                 .HasForeignKey(q => q.userId);
+
+            builder
+                .HasOne(u => u.UsuarioEstado)
+                .WithMany()
+                .HasForeignKey(u => u.estadoId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

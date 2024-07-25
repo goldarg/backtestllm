@@ -27,6 +27,7 @@ namespace api.DataAccess.Configurators
                 .HasColumnName("empresaId")
                 .HasColumnType("int");
 
+            //Relaciones
             builder
                 .HasOne(x => x.User)
                 .WithMany(q => q.EmpresasAsignaciones)

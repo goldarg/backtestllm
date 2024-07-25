@@ -23,6 +23,7 @@ namespace api.DataAccess.Configurators
                 .HasColumnType("int");
             builder.Property(x => x.rolId).IsRequired().HasColumnName("rolId").HasColumnType("int");
 
+            //Relaciones
             builder
                 .HasOne(x => x.Rol)
                 .WithMany(w => w.Asignaciones)

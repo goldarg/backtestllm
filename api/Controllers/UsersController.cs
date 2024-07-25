@@ -84,7 +84,8 @@ public class UsersController : ControllerBase
                         IdCRM = x.Empresa.idCRM,
                         RazonSocial = x.Empresa.razonSocial
                     })
-                    .ToList()
+                    .ToList(),
+                estadoDescripcion = x.UsuarioEstado.descripcion
             })
             .ToList();
 
@@ -98,7 +99,7 @@ public class UsersController : ControllerBase
                 {
                     crm.Roles = db.Roles;
                     crm.Empresas = db.Empresas;
-                    crm.Estado = "Placeholder";
+                    crm.Estado = db.estadoDescripcion;
                     return crm;
                 }
             )
@@ -275,7 +276,15 @@ public class UsersController : ControllerBase
                     throw new BadRequestException("Error al editar el usuario en CRM");
             }
         }
-        user.activo = false;
+
+        var estadoInactivoId = _unitOfWork
+            .GetRepository<UsuarioEstado>()
+            .GetAll()
+            .Where(x => x.descripcion == "Inactivo")
+            .Select(x => x.id)
+            .Single();
+
+        user.estadoId = estadoInactivoId;
         _unitOfWork.SaveChanges();
 
         return Ok();
@@ -290,6 +299,13 @@ public class UsersController : ControllerBase
         var (rolSelected, empresasSelected) = ValidarUsuario(userDto);
         var createdId = await CrearUsuarioCRM(userDto);
 
+        var estadoActivoId = _unitOfWork
+            .GetRepository<UsuarioEstado>()
+            .GetAll()
+            .Where(x => x.descripcion == "Activo")
+            .Select(x => x.id)
+            .Single();
+
         _unitOfWork
             .GetRepository<User>()
             .Insert(
@@ -298,7 +314,7 @@ public class UsersController : ControllerBase
                     userName = userDto.Email,
                     nombre = userDto.Nombre,
                     apellido = userDto.Apellido,
-                    activo = true,
+                    estadoId = estadoActivoId,
                     isRDA = true,
                     idCRM = createdId,
                     Roles = new List<UsuariosRoles>
