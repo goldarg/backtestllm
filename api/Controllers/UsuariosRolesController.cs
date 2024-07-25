@@ -20,8 +20,7 @@ public class UsuariosRolesController : ControllerBase
     [HttpGet]
     public IActionResult GetAll()
     {
-        var usuariosPermisos = _unitOfWork.GetRepository<UsuariosRoles>().GetAll()
-            .ToList();
+        var usuariosPermisos = _unitOfWork.GetRepository<UsuariosRoles>().GetAll().ToList();
         return Ok(usuariosPermisos);
     }
 }

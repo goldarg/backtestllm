@@ -6,13 +6,10 @@ namespace api.DataAccess;
 
 public partial class RdaDbContext : DbContext
 {
-    public RdaDbContext(DbContextOptions<RdaDbContext> dbContextOptions) : base(dbContextOptions)
-    {
+    public RdaDbContext(DbContextOptions<RdaDbContext> dbContextOptions)
+        : base(dbContextOptions) { }
 
-    }
-    public RdaDbContext()
-    {
-    }
+    public RdaDbContext() { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

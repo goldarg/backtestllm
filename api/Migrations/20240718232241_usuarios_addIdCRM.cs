@@ -14,15 +14,14 @@ namespace api.Migrations
                 name: "idCRM",
                 table: "User",
                 type: "nvarchar(max)",
-                nullable: true);
+                nullable: true
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "idCRM",
-                table: "User");
+            migrationBuilder.DropColumn(name: "idCRM", table: "User");
         }
     }
 }

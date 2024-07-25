@@ -27,13 +27,11 @@ public class EmpresasController : ControllerBase
     {
         var empresasUsuario = _userIdentityService.ListarEmpresasDelUsuario(User);
 
-        var empresas = _unitOfWork.GetRepository<Empresa>().GetAll()
+        var empresas = _unitOfWork
+            .GetRepository<Empresa>()
+            .GetAll()
             .Where(x => empresasUsuario.Contains(x.idCRM))
-            .Select(x => new EmpresaDto
-            {
-                IdCRM = x.idCRM,
-                RazonSocial = x.razonSocial
-            })
+            .Select(x => new EmpresaDto { IdCRM = x.idCRM, RazonSocial = x.razonSocial })
             .ToList();
 
         return Ok(empresas);

@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using api.Configuration;
+
 namespace api.Attributes;
+
 public class ValidCargoAttribute : ValidationAttribute
 {
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)

@@ -11,6 +11,7 @@ namespace api.Services
     public interface IUserIdentityService
     {
         string[] ListarRolesDelUsuario(ClaimsPrincipal user);
+
         /// <summary>
         /// Devuelve los idCRM de las empresas a las que el usuario tiene acceso.
         /// </summary>

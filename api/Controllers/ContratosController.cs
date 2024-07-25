@@ -20,7 +20,12 @@ public class ContratosController : Controller
     private readonly CRMService _crmService;
     private readonly IUserIdentityService _identityService;
 
-    public ContratosController(IUserIdentityService identityService, IHttpClientFactory httpClientFactory, IRdaUnitOfWork unitOfWork, CRMService crmService)
+    public ContratosController(
+        IUserIdentityService identityService,
+        IHttpClientFactory httpClientFactory,
+        IRdaUnitOfWork unitOfWork,
+        CRMService crmService
+    )
     {
         _httpClientFactory = httpClientFactory;
         _unitOfWork = unitOfWork;

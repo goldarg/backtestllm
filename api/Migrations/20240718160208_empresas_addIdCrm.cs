@@ -10,19 +10,13 @@ namespace api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "codigo",
-                table: "Empresas",
-                newName: "idCRM");
+            migrationBuilder.RenameColumn(name: "codigo", table: "Empresas", newName: "idCRM");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "idCRM",
-                table: "Empresas",
-                newName: "codigo");
+            migrationBuilder.RenameColumn(name: "idCRM", table: "Empresas", newName: "codigo");
         }
     }
 }

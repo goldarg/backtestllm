@@ -20,8 +20,7 @@ public class UsuariosEmpresasController : ControllerBase
     [HttpGet]
     public IActionResult GetAll()
     {
-        var usuariosEmpresas = _unitOfWork.GetRepository<UsuariosEmpresas>().GetAll()
-            .ToList();
+        var usuariosEmpresas = _unitOfWork.GetRepository<UsuariosEmpresas>().GetAll().ToList();
         return Ok(usuariosEmpresas);
     }
 
@@ -29,7 +28,9 @@ public class UsuariosEmpresasController : ControllerBase
     [Route("GetEmpresasDelUsuario")]
     public IActionResult GetEmpresasDelUsuario(int usuarioId)
     {
-        var empresas = _unitOfWork.GetRepository<UsuariosEmpresas>().GetAll()
+        var empresas = _unitOfWork
+            .GetRepository<UsuariosEmpresas>()
+            .GetAll()
             .Where(x => x.userId == usuarioId)
             .Select(x => x.Empresa)
             .ToList();
@@ -47,5 +48,4 @@ public class UsuariosEmpresasController : ControllerBase
 
         return Ok(usuariosEmpresas);
     }
-
 }

@@ -16,11 +16,27 @@ namespace api.DataAccess.Configurators
             builder.HasKey(x => x.id);
 
             builder.Property(x => x.id).IsRequired().HasColumnName("id").HasColumnType("int");
-            builder.Property(x => x.userId).IsRequired().HasColumnName("userId").HasColumnType("int");
-            builder.Property(x => x.empresaId).IsRequired().HasColumnName("empresaId").HasColumnType("int");
+            builder
+                .Property(x => x.userId)
+                .IsRequired()
+                .HasColumnName("userId")
+                .HasColumnType("int");
+            builder
+                .Property(x => x.empresaId)
+                .IsRequired()
+                .HasColumnName("empresaId")
+                .HasColumnType("int");
 
-            builder.HasOne(x => x.User).WithMany(q => q.EmpresasAsignaciones).HasForeignKey(w => w.userId).OnDelete(DeleteBehavior.ClientSetNull);
-            builder.HasOne(x => x.Empresa).WithMany(q => q.Asignaciones).HasForeignKey(w => w.empresaId).OnDelete(DeleteBehavior.ClientSetNull);
+            builder
+                .HasOne(x => x.User)
+                .WithMany(q => q.EmpresasAsignaciones)
+                .HasForeignKey(w => w.userId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+            builder
+                .HasOne(x => x.Empresa)
+                .WithMany(q => q.Asignaciones)
+                .HasForeignKey(w => w.empresaId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 }

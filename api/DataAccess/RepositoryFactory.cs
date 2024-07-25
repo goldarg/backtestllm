@@ -9,7 +9,8 @@ public class RepositoryFactory : IRepositoryFactory
         _serviceProvider = serviceProvider;
     }
 
-    public IRepository<TEntity> CreateRepository<TEntity>() where TEntity : class
+    public IRepository<TEntity> CreateRepository<TEntity>()
+        where TEntity : class
     {
         return _serviceProvider.GetRequiredService<IRepository<TEntity>>();
     }

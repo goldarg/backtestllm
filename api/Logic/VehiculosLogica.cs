@@ -8,8 +8,5 @@ using api.Models.DTO;
 
 namespace api.Logic
 {
-    public class VehiculosLogica
-    {
-    
-    }
+    public class VehiculosLogica { }
 }

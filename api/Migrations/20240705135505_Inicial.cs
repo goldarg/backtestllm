@@ -15,22 +15,33 @@ namespace api.Migrations
                 name: "Empresas",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "int", nullable: false)
+                    id = table
+                        .Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    razonSocial = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    codigo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    razonSocial = table.Column<string>(
+                        type: "nvarchar(150)",
+                        maxLength: 150,
+                        nullable: false
+                    ),
+                    codigo = table.Column<string>(
+                        type: "nvarchar(100)",
+                        maxLength: 100,
+                        nullable: false
+                    ),
                     guid = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Empresas", x => x.id);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "Rol",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "int", nullable: false)
+                    id = table
+                        .Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     nombreRol = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     guid = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
@@ -38,13 +49,15 @@ namespace api.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Rol", x => x.id);
-                });
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "User",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "int", nullable: false)
+                    id = table
+                        .Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     userName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -61,14 +74,17 @@ namespace api.Migrations
                         column: x => x.empresaId,
                         principalTable: "Empresas",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.NoAction);
-                });
+                        onDelete: ReferentialAction.NoAction
+                    );
+                }
+            );
 
             migrationBuilder.CreateTable(
                 name: "UsuariosRoles",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "int", nullable: false)
+                    id = table
+                        .Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     userId = table.Column<int>(type: "int", nullable: false),
                     rolId = table.Column<int>(type: "int", nullable: false)
@@ -81,45 +97,47 @@ namespace api.Migrations
                         column: x => x.rolId,
                         principalTable: "Rol",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.NoAction
+                    );
                     table.ForeignKey(
                         name: "FK_UsuariosRoles_User_userId",
                         column: x => x.userId,
                         principalTable: "User",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.NoAction);
-                });
+                        onDelete: ReferentialAction.NoAction
+                    );
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_empresaId",
                 table: "User",
-                column: "empresaId");
+                column: "empresaId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_UsuariosRoles_rolId",
                 table: "UsuariosRoles",
-                column: "rolId");
+                column: "rolId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_UsuariosRoles_userId",
                 table: "UsuariosRoles",
-                column: "userId");
+                column: "userId"
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "UsuariosRoles");
+            migrationBuilder.DropTable(name: "UsuariosRoles");
 
-            migrationBuilder.DropTable(
-                name: "Rol");
+            migrationBuilder.DropTable(name: "Rol");
 
-            migrationBuilder.DropTable(
-                name: "User");
+            migrationBuilder.DropTable(name: "User");
 
-            migrationBuilder.DropTable(
-                name: "Empresas");
+            migrationBuilder.DropTable(name: "Empresas");
         }
     }
 }

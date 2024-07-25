@@ -15,17 +15,55 @@ namespace api.DataAccess.Configurators
         {
             builder.ToTable("Users");
             builder.HasKey(x => x.id);
-            
-            builder.Property(x => x.id).IsRequired().HasColumnName("id").HasColumnType("int");
-            builder.Property(x => x.userName).IsRequired().HasColumnName("userName").HasColumnType("nvarchar").HasMaxLength(100);
-            builder.Property(x => x.nombre).IsRequired().HasColumnName("nombre").HasColumnType("nvarhar").HasMaxLength(100);
-            builder.Property(x => x.apellido).IsRequired().HasColumnName("apellido").HasColumnType("nvarhar").HasMaxLength(100);
-            builder.Property(x => x.activo).IsRequired().HasColumnName("activo").HasColumnType("bit").HasDefaultValue(1);
-            builder.Property(x => x.guid).IsRequired().HasColumnName("guid").HasColumnType("uniqueidentifier").IsRequired();
-            builder.Property(x => x.isRDA).IsRequired().HasColumnName("guid").HasColumnType("bit").HasDefaultValue(1);
-            builder.Property(x => x.idCRM).IsRequired().HasColumnName("idCRM").HasColumnType("nvarchar").HasMaxLength(100);
 
-            builder.HasMany(x => x.EmpresasAsignaciones).WithOne(u => u.User).HasForeignKey(q => q.userId);
+            builder.Property(x => x.id).IsRequired().HasColumnName("id").HasColumnType("int");
+            builder
+                .Property(x => x.userName)
+                .IsRequired()
+                .HasColumnName("userName")
+                .HasColumnType("nvarchar")
+                .HasMaxLength(100);
+            builder
+                .Property(x => x.nombre)
+                .IsRequired()
+                .HasColumnName("nombre")
+                .HasColumnType("nvarhar")
+                .HasMaxLength(100);
+            builder
+                .Property(x => x.apellido)
+                .IsRequired()
+                .HasColumnName("apellido")
+                .HasColumnType("nvarhar")
+                .HasMaxLength(100);
+            builder
+                .Property(x => x.activo)
+                .IsRequired()
+                .HasColumnName("activo")
+                .HasColumnType("bit")
+                .HasDefaultValue(1);
+            builder
+                .Property(x => x.guid)
+                .IsRequired()
+                .HasColumnName("guid")
+                .HasColumnType("uniqueidentifier")
+                .IsRequired();
+            builder
+                .Property(x => x.isRDA)
+                .IsRequired()
+                .HasColumnName("guid")
+                .HasColumnType("bit")
+                .HasDefaultValue(1);
+            builder
+                .Property(x => x.idCRM)
+                .IsRequired()
+                .HasColumnName("idCRM")
+                .HasColumnType("nvarchar")
+                .HasMaxLength(100);
+
+            builder
+                .HasMany(x => x.EmpresasAsignaciones)
+                .WithOne(u => u.User)
+                .HasForeignKey(q => q.userId);
         }
     }
 }

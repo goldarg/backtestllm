@@ -20,17 +20,12 @@ public class RolesController : ControllerBase
         _userIdentityService = userIdentityService;
     }
 
-
     [HttpGet]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetAll()
     {
         var roles = _userIdentityService.ListarRolesInferiores(User);
-        var rta = roles.Select(x => new RolDto
-        {
-            Id = x.id,
-            NombreRol = x.nombreRol
-        });
+        var rta = roles.Select(x => new RolDto { Id = x.id, NombreRol = x.nombreRol });
         return Ok(rta);
     }
 
