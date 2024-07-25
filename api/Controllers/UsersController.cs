@@ -85,7 +85,7 @@ public class UsersController : ControllerBase
                         RazonSocial = x.Empresa.razonSocial
                     })
                     .ToList(),
-                estadoDescripcion = x.UsuarioEstado.descripcion
+                estadoDescripcion = x.estado
             })
             .ToList();
 
@@ -252,7 +252,10 @@ public class UsersController : ControllerBase
             throw new BadRequestException("No se poseen permisos para modificar este usuario");
 
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
-        var jsonObj = new { data = new[] { new { id = usuarioCrmId, Estado_Mirai = "Inactivo" } } };
+        var jsonObj = new
+        {
+            data = new[] { new { id = usuarioCrmId, Estado_Mirai = EstadosUsuario.inactivo } }
+        };
         var jsonData = JsonSerializer.Serialize(jsonObj);
         var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
         var response = await httpClient.PatchAsync($"crm/v2/Contacts/upsert", content);
@@ -277,14 +280,7 @@ public class UsersController : ControllerBase
             }
         }
 
-        var estadoInactivoId = _unitOfWork
-            .GetRepository<UsuarioEstado>()
-            .GetAll()
-            .Where(x => x.descripcion == "Inactivo")
-            .Select(x => x.id)
-            .Single();
-
-        user.estadoId = estadoInactivoId;
+        user.estado = EstadosUsuario.inactivo;
         _unitOfWork.SaveChanges();
 
         return Ok();
@@ -299,13 +295,6 @@ public class UsersController : ControllerBase
         var (rolSelected, empresasSelected) = ValidarUsuario(userDto);
         var createdId = await CrearUsuarioCRM(userDto);
 
-        var estadoActivoId = _unitOfWork
-            .GetRepository<UsuarioEstado>()
-            .GetAll()
-            .Where(x => x.descripcion == "Activo")
-            .Select(x => x.id)
-            .Single();
-
         _unitOfWork
             .GetRepository<User>()
             .Insert(
@@ -314,7 +303,7 @@ public class UsersController : ControllerBase
                     userName = userDto.Email,
                     nombre = userDto.Nombre,
                     apellido = userDto.Apellido,
-                    estadoId = estadoActivoId,
+                    estado = EstadosUsuario.activo,
                     isRDA = true,
                     idCRM = createdId,
                     Roles = new List<UsuariosRoles>

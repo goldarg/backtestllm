@@ -85,14 +85,11 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
 
-                    b.Property<int>("UsuarioEstadoid")
-                        .HasColumnType("int");
-
                     b.Property<string>("apellido")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("estadoId")
-                        .HasColumnType("int");
+                    b.Property<string>("estado")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("guid")
                         .HasColumnType("uniqueidentifier");
@@ -114,26 +111,7 @@ namespace api.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("UsuarioEstadoid");
-
                     b.ToTable("User");
-                });
-
-            modelBuilder.Entity("api.Models.Entities.UsuarioEstado", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
-
-                    b.Property<string>("descripcion")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("id");
-
-                    b.ToTable("UsuarioEstado");
                 });
 
             modelBuilder.Entity("api.Models.Entities.UsuariosEmpresas", b =>
@@ -180,17 +158,6 @@ namespace api.Migrations
                     b.HasIndex("userId");
 
                     b.ToTable("UsuariosRoles");
-                });
-
-            modelBuilder.Entity("api.Models.Entities.User", b =>
-                {
-                    b.HasOne("api.Models.Entities.UsuarioEstado", "UsuarioEstado")
-                        .WithMany()
-                        .HasForeignKey("UsuarioEstadoid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("UsuarioEstado");
                 });
 
             modelBuilder.Entity("api.Models.Entities.UsuariosEmpresas", b =>
