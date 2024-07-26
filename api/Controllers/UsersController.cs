@@ -21,20 +21,18 @@ public class UsersController : ControllerBase
     [HttpGet]
     [Route("getPuestosOptions")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public IActionResult GetPuestos()
-        => Ok(CargoOptions.OpcionesValidas);
+    public IActionResult GetPuestos() => Ok(CargoOptions.OpcionesValidas);
 
     [HttpGet]
     [Route("GetListaUsuarios")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN,CONDUCTOR")]
-    public async Task<IActionResult> GetListaUsuarios()
-        => Ok(await _userService.GetListaUsuarios(User));
+    public async Task<IActionResult> GetListaUsuarios() =>
+        Ok(await _userService.GetListaUsuarios(User));
 
     [HttpGet]
     [Route("GetConductores")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public IActionResult GetConductores()
-        => Ok(_userService.GetConductores(User));
+    public IActionResult GetConductores() => Ok(_userService.GetConductores(User));
 
     [HttpGet("{id}")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
@@ -59,7 +57,7 @@ public class UsersController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto userDto)
+    public async Task<IActionResult> CreateUser([FromBody] UserDto userDto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -67,6 +65,17 @@ public class UsersController : ControllerBase
         await _userService.CreateUser(userDto, User);
 
         return Created();
+    }
+
+    [HttpPut]
+    [Route("editUser/{usuarioCrmId}")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
+    public async Task<IActionResult> EditUser(string usuarioCrmId, UserDto userDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        await _userService.EditUser(User, usuarioCrmId, userDto);
+        return Ok();
     }
 
     [HttpPost]
@@ -82,9 +91,9 @@ public class UsersController : ControllerBase
         var userName = User?.Identity?.Name;
         if (userName == null)
             return BadRequest("No se pudo obtener el id del usuario actual");
-        
+
         await _userService.EditSelfConductor(conductorDto, userName);
 
-        return Ok("Teléfono actualizado correctamente");
+        return Ok();
     }
 }

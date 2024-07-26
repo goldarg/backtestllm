@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using api.Configuration;
@@ -36,10 +37,7 @@ namespace api.Services
             _crmService = crmService;
         }
 
-        public async Task CreateUser(
-            CreateUserDto userDto,
-            System.Security.Claims.ClaimsPrincipal User
-        )
+        public async Task CreateUser(UserDto userDto, ClaimsPrincipal User)
         {
             var (rolSelected, empresasSelected) = ValidarUsuario(userDto, User);
             var createdId = await CrearUsuarioCRM(userDto);
@@ -66,7 +64,7 @@ namespace api.Services
 
         public async Task DesactivarUsuario(
             DesactivarConductorDto desactivarDto,
-            System.Security.Claims.ClaimsPrincipal User
+            ClaimsPrincipal User
         )
         {
             //Valido que el usuario del request puede editar al usuario target
@@ -192,7 +190,7 @@ namespace api.Services
             _unitOfWork.SaveChanges();
         }
 
-        public List<ConductorEmpresaDto> GetConductores(System.Security.Claims.ClaimsPrincipal User)
+        public List<ConductorEmpresaDto> GetConductores(ClaimsPrincipal User)
         {
             var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario(User);
 
@@ -216,9 +214,7 @@ namespace api.Services
             ];
         }
 
-        public async Task<List<ConductorDto>>? GetListaUsuarios(
-            System.Security.Claims.ClaimsPrincipal User
-        )
+        public async Task<List<ConductorDto>>? GetListaUsuarios(ClaimsPrincipal User)
         {
             var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario(User);
             var topeJerarquia = _userIdentityService
@@ -340,6 +336,30 @@ namespace api.Services
                 .SingleOrDefault();
         }
 
+        public async Task EditUser(ClaimsPrincipal User, string usuarioCrmId, UserDto userDto)
+        {
+            var (rolSelected, empresasSelected) = ValidarUsuario(userDto, User, usuarioCrmId);
+            var userDb = _unitOfWork
+                .GetRepository<User>()
+                .GetAll()
+                .Where(x => x.idCRM == usuarioCrmId)
+                .SingleOrDefault();
+            if (userDb == null)
+                throw new NotFoundException("Usuario no encontrado");
+
+            await ActualizarUsuarioCRM(usuarioCrmId, userDto);
+
+            userDb.nombre = userDto.Nombre;
+            userDb.apellido = userDto.Apellido;
+            userDb.userName = userDto.Email;
+            userDb.Roles = new List<UsuariosRoles> { new() { rolId = rolSelected.id } };
+            userDb.EmpresasAsignaciones = empresasSelected
+                .Select(empresa => new UsuariosEmpresas { empresaId = empresa.id })
+                .ToList();
+            _unitOfWork.GetRepository<User>().Update(userDb);
+            _unitOfWork.SaveChanges();
+        }
+
         public async Task EditSelfConductor(UpdateSelfConductorDto conductorDto, string userName)
         {
             var user = _unitOfWork
@@ -413,14 +433,15 @@ namespace api.Services
         /// <param name="userDto"></param>
         /// <exception cref="BadRequestException"></exception>
         private (Rol rol, List<Empresa> empresas) ValidarUsuario(
-            CreateUserDto userDto,
-            System.Security.Claims.ClaimsPrincipal User
+            UserDto userDto,
+            ClaimsPrincipal User,
+            string usuarioCrmId = ""
         )
         {
-            bool isUserExists = _unitOfWork
+            var isUserExists = _unitOfWork
                 .GetRepository<User>()
                 .GetAll()
-                .Any(x => x.userName == userDto.Email);
+                .Any(x => x.userName == userDto.Email && x.idCRM != usuarioCrmId);
             if (isUserExists)
                 throw new BadRequestException("El correo electrónico ya está en uso");
             // el rolId tiene que ser un rol válido
@@ -463,7 +484,7 @@ namespace api.Services
         /// <param name="userDto"></param>
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
-        private async Task<string> CrearUsuarioCRM(CreateUserDto userDto)
+        private async Task<string> CrearUsuarioCRM(UserDto userDto)
         {
             var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
@@ -514,6 +535,51 @@ namespace api.Services
                     "Error al crear el usuario en CRM, no se obtuvo el id"
                 );
             return createdId;
+        }
+
+        private async Task ActualizarUsuarioCRM(string usuarioCrmId, UserDto userDto)
+        {
+            var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+
+            var jsonObj = new
+            {
+                data = new[]
+                {
+                    new
+                    {
+                        id = usuarioCrmId,
+                        First_Name = userDto.Nombre,
+                        Last_Name = userDto.Apellido,
+                        Email = userDto.Email,
+                        Cargo = userDto.Puesto,
+                        Phone = userDto.Telefono,
+                        Comentario = "actualizado desde plataforma"
+                    }
+                }
+            };
+            var jsonData = JsonSerializer.Serialize(jsonObj);
+            var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            var response = await httpClient.PutAsync($"crm/v2/Contacts/{usuarioCrmId}", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse>(responseString);
+
+            if (apiResponse == null || apiResponse.data == null || apiResponse.data.Count == 0)
+                throw new BadRequestException("Respuesta inválida del CRM");
+
+            var responseData = apiResponse.data[0];
+            if (responseData.status != "success")
+            {
+                switch (responseData.code)
+                {
+                    case "DUPLICATE_DATA":
+                        throw new BadRequestException(
+                            "Ya existe un usuario en el CRM con ese correo electrónico"
+                        );
+                    default:
+                        throw new BadRequestException("Error al actualizar el usuario en CRM");
+                }
+            }
         }
 
         private async Task ActualizarTelefonoCRM(string idCRM, string nuevoTelefono)

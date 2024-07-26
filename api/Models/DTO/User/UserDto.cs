@@ -3,7 +3,7 @@ using api.Attributes;
 
 namespace api.Models.DTO.User
 {
-    public class CreateUserDto
+    public class UserDto
     {
         [MinLength(2, ErrorMessage = "El nombre debe tener al menos 2 caracteres")]
         public required string Nombre { get; set; }
