@@ -42,6 +42,11 @@ builder.Services.AddScoped<IRepositoryFactory, RepositoryFactory>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<CRMService>();
 builder.Services.AddScoped<IUserIdentityService, UserIdentityService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmpresaService, EmpresaService>();
+builder.Services.AddScoped<IContratoService, ContratoService>();
+builder.Services.AddScoped<IRolService, RolService>();
+builder.Services.AddScoped<IVehiculoService, VehiculoService>();
 
 ///// Adds Microsoft Identity platform (Azure AD B2C) support to protect this Api
 builder
