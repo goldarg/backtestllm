@@ -6,9 +6,9 @@ using api.Models.DTO.Vehiculo;
 
 namespace api.Models.DTO.Conductor
 {
-    public class ConductorVehiculoDto
+    public class DesactivarConductorDto
     {
-        public string? conductorCrmId { get; set; }
-        public VehiculoRelacionadoDto? vehiculo { get; set; }
+        public string? usuarioCrmId { get; set; }
+        public List<VehiculoRelacionadoDto> vehiculosRelacionados { get; set; }
     }
 }
