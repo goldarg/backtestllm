@@ -10,17 +10,11 @@ namespace api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_User_Empresas_Empresaid",
-                table: "User");
+            migrationBuilder.DropForeignKey(name: "FK_User_Empresas_Empresaid", table: "User");
 
-            migrationBuilder.DropIndex(
-                name: "IX_User_Empresaid",
-                table: "User");
+            migrationBuilder.DropIndex(name: "IX_User_Empresaid", table: "User");
 
-            migrationBuilder.DropColumn(
-                name: "Empresaid",
-                table: "User");
+            migrationBuilder.DropColumn(name: "Empresaid", table: "User");
         }
 
         /// <inheritdoc />
@@ -30,19 +24,22 @@ namespace api.Migrations
                 name: "Empresaid",
                 table: "User",
                 type: "int",
-                nullable: true);
+                nullable: true
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_Empresaid",
                 table: "User",
-                column: "Empresaid");
+                column: "Empresaid"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_User_Empresas_Empresaid",
                 table: "User",
                 column: "Empresaid",
                 principalTable: "Empresas",
-                principalColumn: "id");
+                principalColumn: "id"
+            );
         }
     }
 }

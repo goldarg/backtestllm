@@ -11,6 +11,7 @@ namespace api.Services
     public class UserIdentityService : IUserIdentityService
     {
         private readonly IRdaUnitOfWork _unitOfWork;
+
         public UserIdentityService(IRdaUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -24,8 +25,10 @@ namespace api.Services
             if (claimIdentity == null)
                 return Array.Empty<string>();
 
-            var roles = user.Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
-            .Select(x => x.Value).ToArray();
+            var roles = user
+                .Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
+                .Select(x => x.Value)
+                .ToArray();
 
             return roles;
         }
@@ -38,8 +41,7 @@ namespace api.Services
             if (claimIdentity == null)
                 return Array.Empty<string>();
 
-            var roles = user.Claims.Where(x => x.Type == "empresas")
-            .Select(x => x.Value).ToArray();
+            var roles = user.Claims.Where(x => x.Type == "empresas").Select(x => x.Value).ToArray();
 
             return roles;
         }
@@ -51,8 +53,10 @@ namespace api.Services
             if (claimIdentity == null)
                 return false;
 
-            return user.Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
-                .Select(x => x.Value).Any(x => x == rol);
+            return user
+                .Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
+                .Select(x => x.Value)
+                .Any(x => x == rol);
         }
 
         //Devuelve si el usuario tiene o no el claim al CrmId de la empresa
@@ -62,8 +66,10 @@ namespace api.Services
             if (claimIdentity == null)
                 return false;
 
-            return user.Claims.Where(x => x.Type == "empresas")
-                .Select(x => x.Value).Any(x => x == empresa);
+            return user
+                .Claims.Where(x => x.Type == "empresas")
+                .Select(x => x.Value)
+                .Any(x => x == empresa);
         }
 
         /// <summary>
@@ -77,7 +83,8 @@ namespace api.Services
             if (rolesUsuario == null || !rolesUsuario.Any())
                 return 0;
 
-            var jerarquiaRolMayor = _unitOfWork.GetRepository<Rol>()
+            var jerarquiaRolMayor = _unitOfWork
+                .GetRepository<Rol>()
                 .GetAll()
                 .Where(r => rolesUsuario.Contains(r.nombreRol))
                 .OrderByDescending(r => r.jerarquia)
@@ -93,7 +100,8 @@ namespace api.Services
             var rolConMayorJerarquia = GetJerarquiaRolMayor(user);
 
             // Obtener todos los roles inferiores a rolConMayorJerarquia.jerarquia
-            var rolesSuperiores = _unitOfWork.GetRepository<Rol>()
+            var rolesSuperiores = _unitOfWork
+                .GetRepository<Rol>()
                 .GetAll()
                 .Where(r => r.jerarquia >= rolConMayorJerarquia)
                 .ToArray();
@@ -109,14 +117,13 @@ namespace api.Services
                 return Array.Empty<Rol>();
 
             // Obtener todos los roles inferiores a rolConMayorJerarquia.jerarquia
-            var rolesInferiores = _unitOfWork.GetRepository<Rol>()
+            var rolesInferiores = _unitOfWork
+                .GetRepository<Rol>()
                 .GetAll()
                 .Where(r => r.jerarquia < rolConMayorJerarquia)
                 .ToArray();
 
             return rolesInferiores;
         }
-
-
     }
 }

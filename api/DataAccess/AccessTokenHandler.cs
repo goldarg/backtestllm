@@ -17,7 +17,8 @@ public class AccessTokenHandler : DelegatingHandler
             {
                 _instance ??= new AccessTokenHandler();
 
-                if (_instance._tokenExpiry == null || _instance._tokenExpiry <= DateTime.Now) UpdateAccessToken();
+                if (_instance._tokenExpiry == null || _instance._tokenExpiry <= DateTime.Now)
+                    UpdateAccessToken();
 
                 return _instance;
             }
@@ -34,7 +35,10 @@ public class AccessTokenHandler : DelegatingHandler
         {
             { "client_id", "1000.T0JQBZBHU16DOVJ76TQG4MGTLZQF2H" },
             { "client_secret", "bc061baaf6ca19fdb603e770c0213103cb06995d1c" },
-            { "refresh_token", "1000.2365d1cf4a645c9f3d310fbd5f85df33.81593c1879f6a6670fb1df3488f2216f" },
+            {
+                "refresh_token",
+                "1000.2365d1cf4a645c9f3d310fbd5f85df33.81593c1879f6a6670fb1df3488f2216f"
+            },
             { "grant_type", "refresh_token" }
         };
 
@@ -43,11 +47,13 @@ public class AccessTokenHandler : DelegatingHandler
         var response = client.PostAsync("oauth/v2/token", addMe).Result;
         var json = response.Content.ReadAsStringAsync().Result;
 
-        dynamic result = JsonConvert.DeserializeObject(json) ??
-                         throw new InvalidOperationException("fallo al deserealizar token");
+        dynamic result =
+            JsonConvert.DeserializeObject(json)
+            ?? throw new InvalidOperationException("fallo al deserealizar token");
         var accessToken = result["access_token"].Value;
 
-        if (_instance == null) return;
+        if (_instance == null)
+            return;
         _instance.AccessToken = accessToken;
         _instance._tokenExpiry = DateTime.Now.AddMinutes(50); //Margen de 10 minutos
     }

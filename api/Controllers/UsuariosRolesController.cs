@@ -1,5 +1,4 @@
-using api.DataAccess;
-using api.Models.Entities;
+using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,18 +9,14 @@ namespace api.Controllers;
 [Authorize(Roles = "RDA")]
 public class UsuariosRolesController : ControllerBase
 {
-    private readonly IRdaUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
-    public UsuariosRolesController(IRdaUnitOfWork unitOfWork)
+    public UsuariosRolesController(IUserService userService)
     {
-        _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpGet]
     public IActionResult GetAll()
-    {
-        var usuariosPermisos = _unitOfWork.GetRepository<UsuariosRoles>().GetAll()
-            .ToList();
-        return Ok(usuariosPermisos);
-    }
+        => Ok(_userService.GetAllUsuariosRoles());
 }

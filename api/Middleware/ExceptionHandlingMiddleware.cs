@@ -2,8 +2,8 @@
 using System.Text.Json;
 using api.Exceptions;
 
-
 namespace api.Middleware;
+
 /// <summary>
 /// Este middleware no se ejecutara si estamos en desarrollo ya que UseDeveloperExceptionPage
 /// captura las exceptiones y muestra la traza de error

@@ -1,8 +1,6 @@
-using api.DataAccess;
-using api.Exceptions;
-using api.Models.DTO;
-using api.Models.DTO.Empresa;
-using api.Models.Entities;
+using api.Configuration;
+using api.Models.DTO.Conductor;
+using api.Models.DTO.User;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,47 +11,80 @@ namespace api.Controllers;
 [ApiController]
 public class UsersController : ControllerBase
 {
-    private readonly IRdaUnitOfWork _unitOfWork;
-    private readonly IUserIdentityService _identityService;
+    private readonly IUserService _userService;
 
-    public UsersController(IUserIdentityService identityService, IRdaUnitOfWork unitOfWork)
+    public UsersController(IUserService userService)
     {
-        _unitOfWork = unitOfWork;
-        _identityService = identityService;
+        _userService = userService;
     }
+
+    [HttpGet]
+    [Route("getPuestosOptions")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
+    public IActionResult GetPuestos()
+        => Ok(CargoOptions.OpcionesValidas);
+
+    [HttpGet]
+    [Route("GetListaUsuarios")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN,CONDUCTOR")]
+    public async Task<IActionResult> GetListaUsuarios()
+        => Ok(await _userService.GetListaUsuarios(User));
 
     [HttpGet]
     [Route("GetConductores")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetConductores()
-    {
-        var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
-
-        var conductores = _unitOfWork.GetRepository<User>().GetAll()
-            .Where(u => u.Roles.Any(reg => reg.Rol.nombreRol == "CONDUCTOR") &&
-            u.EmpresasAsignaciones.Any(ea => empresasDisponibles.Contains(ea.Empresa.idCRM)))
-            .Select(x => new
-            {
-                id = x.idCRM,
-                name = x.nombre + " " + x.apellido, //Mismo formato que otroga el CRM
-                empresaId = x.EmpresasAsignaciones.First().Empresa.idCRM
-            })
-            .ToList();
-
-        return Ok(conductores);
-    }
+        => Ok(_userService.GetConductores(User));
 
     [HttpGet("{id}")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetById([FromRoute] int id)
     {
-        var user = _unitOfWork.GetRepository<User>().GetAll()
-        .Where(x => x.idCRM == id.ToString())
-        .SingleOrDefault();
+        var user = _userService.GetUserById(id);
 
         if (user == null)
             return NotFound();
 
         return Ok(user);
+    }
+
+    [HttpPost("DesactivarUsuario")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
+    public async Task<IActionResult> DesactivarUsuario(DesactivarConductorDto desactivarDto)
+    {
+        await _userService.DesactivarUsuario(desactivarDto, User);
+
+        return Ok();
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto userDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        await _userService.CreateUser(userDto, User);
+
+        return Created();
+    }
+
+    [HttpPost]
+    [Route("editSelfConductor")]
+    [Authorize(Roles = "CONDUCTOR")]
+    public async Task<IActionResult> EditSelfConductor(
+        [FromBody] UpdateSelfConductorDto conductorDto
+    )
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userName = User?.Identity?.Name;
+        if (userName == null)
+            return BadRequest("No se pudo obtener el id del usuario actual");
+        
+        await _userService.EditSelfConductor(conductorDto, userName);
+
+        return Ok("Teléfono actualizado correctamente");
     }
 }

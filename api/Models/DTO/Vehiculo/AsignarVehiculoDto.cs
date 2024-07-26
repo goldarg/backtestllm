@@ -9,6 +9,6 @@ namespace api.Models.DTO.Vehiculo
     {
         public string? usuarioId { get; set; }
         public string tipoContrato { get; set; }
-        public string? idContratoInterno { get; set;}
+        public string? idContratoInterno { get; set; }
     }
 }

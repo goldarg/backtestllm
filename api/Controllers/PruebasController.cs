@@ -41,24 +41,90 @@ public class PruebasController : ControllerBase
     {
         var vehiculos = new List<Vehiculo>
         {
-            new() { Codigo = "ABC123", Marca = "Toyota", Asignado = true },
-            new() { Codigo = "XYZ789", Marca = "Ford", Asignado = false },
-            new() { Codigo = "LMN456", Marca = "Honda", Asignado = true },
-            new() { Codigo = "JKL321", Marca = "Nissan", Asignado = false },
-            new() { Codigo = "QWE987", Marca = "BMW", Asignado = true },
-            new() { Codigo = "RTY654", Marca = "Audi", Asignado = false },
-            new() { Codigo = "UIO852", Marca = "Mercedes", Asignado = true },
-            new() { Codigo = "GHJ369", Marca = "Chevrolet", Asignado = false },
-            new() { Codigo = "ASD741", Marca = "Kia", Asignado = true },
-            new() { Codigo = "ZXC159", Marca = "Mazda", Asignado = false },
-            new() { Codigo = "VBN753", Marca = "Subaru", Asignado = true },
-            new() { Codigo = "POI456", Marca = "Volkswagen", Asignado = false },
-            new() { Codigo = "MNB951", Marca = "Hyundai", Asignado = true }
+            new()
+            {
+                Codigo = "ABC123",
+                Marca = "Toyota",
+                Asignado = true
+            },
+            new()
+            {
+                Codigo = "XYZ789",
+                Marca = "Ford",
+                Asignado = false
+            },
+            new()
+            {
+                Codigo = "LMN456",
+                Marca = "Honda",
+                Asignado = true
+            },
+            new()
+            {
+                Codigo = "JKL321",
+                Marca = "Nissan",
+                Asignado = false
+            },
+            new()
+            {
+                Codigo = "QWE987",
+                Marca = "BMW",
+                Asignado = true
+            },
+            new()
+            {
+                Codigo = "RTY654",
+                Marca = "Audi",
+                Asignado = false
+            },
+            new()
+            {
+                Codigo = "UIO852",
+                Marca = "Mercedes",
+                Asignado = true
+            },
+            new()
+            {
+                Codigo = "GHJ369",
+                Marca = "Chevrolet",
+                Asignado = false
+            },
+            new()
+            {
+                Codigo = "ASD741",
+                Marca = "Kia",
+                Asignado = true
+            },
+            new()
+            {
+                Codigo = "ZXC159",
+                Marca = "Mazda",
+                Asignado = false
+            },
+            new()
+            {
+                Codigo = "VBN753",
+                Marca = "Subaru",
+                Asignado = true
+            },
+            new()
+            {
+                Codigo = "POI456",
+                Marca = "Volkswagen",
+                Asignado = false
+            },
+            new()
+            {
+                Codigo = "MNB951",
+                Marca = "Hyundai",
+                Asignado = true
+            }
         };
 
         if (filter == "assigned")
             vehiculos = vehiculos.Where(v => v.Asignado).ToList();
-        else if (filter == "unassigned") vehiculos = vehiculos.Where(v => !v.Asignado).ToList();
+        else if (filter == "unassigned")
+            vehiculos = vehiculos.Where(v => !v.Asignado).ToList();
 
         return Ok(vehiculos);
     }
@@ -103,12 +169,8 @@ public class PruebasController : ControllerBase
     [HttpGet]
     public IActionResult GetContactsCrm()
     {
-        // User.Identity.Name;
-        var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+        var test = _unitOfWork.GetRepository<User>().GetAll().ToList();
 
-        var response = httpClient.GetAsync("crm/v2/Contacts").Result;
-        var json = response.Content.ReadAsStringAsync().Result;
-
-        return Ok(json);
+        return Ok(test);
     }
 }

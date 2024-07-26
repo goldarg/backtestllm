@@ -85,10 +85,10 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
 
-                    b.Property<bool>("activo")
-                        .HasColumnType("bit");
-
                     b.Property<string>("apellido")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("estado")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("guid")
@@ -101,6 +101,9 @@ namespace api.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("nombre")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("telefono")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("userName")

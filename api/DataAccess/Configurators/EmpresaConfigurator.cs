@@ -16,11 +16,30 @@ namespace api.DataAccess.Configurators
             builder.HasKey(x => x.id);
 
             builder.Property(x => x.id).IsRequired().HasColumnName("id").HasColumnType("int");
-            builder.Property(x => x.razonSocial).IsRequired().HasColumnName("razonSocial").HasColumnType("nvarchar").HasMaxLength(150);
-            builder.Property(x => x.guid).IsRequired().HasColumnName("guid").HasColumnType("uniqueidentifier").IsRequired();
-            builder.Property(x => x.idCRM).IsRequired().HasColumnName("idCRM").HasColumnType("nvarchar").HasMaxLength(100);
+            builder
+                .Property(x => x.razonSocial)
+                .IsRequired()
+                .HasColumnName("razonSocial")
+                .HasColumnType("nvarchar")
+                .HasMaxLength(150);
+            builder
+                .Property(x => x.guid)
+                .IsRequired()
+                .HasColumnName("guid")
+                .HasColumnType("uniqueidentifier")
+                .IsRequired();
+            builder
+                .Property(x => x.idCRM)
+                .IsRequired()
+                .HasColumnName("idCRM")
+                .HasColumnType("nvarchar")
+                .HasMaxLength(100);
 
-            builder.HasMany(e => e.Asignaciones).WithOne(ue => ue.Empresa).HasForeignKey(q => q.empresaId);
+            //Relaciones
+            builder
+                .HasMany(e => e.Asignaciones)
+                .WithOne(ue => ue.Empresa)
+                .HasForeignKey(q => q.empresaId);
         }
     }
 }

@@ -1,5 +1,4 @@
-using api.DataAccess;
-using api.Models.Entities;
+using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,42 +9,30 @@ namespace api.Controllers;
 [Authorize(Roles = "RDA")]
 public class UsuariosEmpresasController : ControllerBase
 {
-    private readonly IRdaUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
 
-    public UsuariosEmpresasController(IRdaUnitOfWork unitOfWork)
+    public UsuariosEmpresasController(IUserService userService)
     {
-        _unitOfWork = unitOfWork;
+        _userService = userService;
     }
 
     [HttpGet]
     public IActionResult GetAll()
-    {
-        var usuariosEmpresas = _unitOfWork.GetRepository<UsuariosEmpresas>().GetAll()
-            .ToList();
-        return Ok(usuariosEmpresas);
-    }
+        => Ok(_userService.GetAllUsuariosEmpresas());   
 
     [HttpGet]
     [Route("GetEmpresasDelUsuario")]
     public IActionResult GetEmpresasDelUsuario(int usuarioId)
-    {
-        var empresas = _unitOfWork.GetRepository<UsuariosEmpresas>().GetAll()
-            .Where(x => x.userId == usuarioId)
-            .Select(x => x.Empresa)
-            .ToList();
-
-        return Ok(empresas);
-    }
+        => Ok(_userService.GetEmpresasDelUsuario(usuarioId));
 
     [HttpGet("{id}")]
     public IActionResult GetById([FromRoute] int id)
     {
-        var usuariosEmpresas = _unitOfWork.GetRepository<UsuariosEmpresas>().GetById(id);
+        var usuariosEmpresas = _userService.GetUsuariosEmpresasById(id);
 
         if (usuariosEmpresas == null)
             return NotFound();
 
         return Ok(usuariosEmpresas);
     }
-
 }

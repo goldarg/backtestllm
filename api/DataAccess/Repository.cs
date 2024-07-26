@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.DataAccess;
 
-public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
+public class Repository<TEntity> : IRepository<TEntity>
+    where TEntity : class
 {
     private readonly IRdaUnitOfWork _unitOfWork;
     private readonly DbSet<TEntity> _dbSet;
@@ -22,14 +23,20 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     public virtual IQueryable<TEntity> GetAll(
         Expression<Func<TEntity, bool>>? filter = null,
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
-        string includeProperties = "")
+        string includeProperties = ""
+    )
     {
         IQueryable<TEntity> query = _dbSet.AsNoTracking();
 
-        if (filter != null) query = query.Where(filter);
+        if (filter != null)
+            query = query.Where(filter);
 
-        foreach (var includeProperty in includeProperties.Split
-                     (new [] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        foreach (
+            var includeProperty in includeProperties.Split(
+                new[] { ',' },
+                StringSplitOptions.RemoveEmptyEntries
+            )
+        )
             query = query.Include(includeProperty);
 
         if (orderBy != null)
@@ -51,12 +58,14 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     public virtual void Delete(object id)
     {
         var entityToDelete = _dbSet.Find(id);
-        if (entityToDelete != null) Delete(entityToDelete);
+        if (entityToDelete != null)
+            Delete(entityToDelete);
     }
 
     public virtual void Delete(TEntity entityToDelete)
     {
-        if (_dbSet.Entry(entityToDelete).State == EntityState.Detached) _dbSet.Attach(entityToDelete);
+        if (_dbSet.Entry(entityToDelete).State == EntityState.Detached)
+            _dbSet.Attach(entityToDelete);
         _dbSet.Remove(entityToDelete);
     }
 

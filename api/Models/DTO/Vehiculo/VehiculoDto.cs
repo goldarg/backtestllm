@@ -27,7 +27,8 @@ namespace api.Models.DTO
         public string? tipoContrato { get; set; }
         public CRMRelatedObject? Cuenta { get; set; }
         public int? Ultimo_Odometro_KM { get; set; }
-        //Grupo = Holding, "padre" de la empresa que representa un grupo de empresas. 
+
+        //Grupo = Holding, "padre" de la empresa que representa un grupo de empresas.
         //TODO de RDA: Falta que lo agreguen en el CRM, y venir a mappearlo aca (por ahora hardcodeado)
         public CRMRelatedObject? Grupo { get; set; }
         public DateTime? Fecha_siguiente_VTV { get; set; }

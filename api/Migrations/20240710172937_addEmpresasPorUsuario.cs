@@ -10,19 +10,15 @@ namespace api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_User_Empresas_empresaId",
-                table: "User");
+            migrationBuilder.DropForeignKey(name: "FK_User_Empresas_empresaId", table: "User");
 
-            migrationBuilder.RenameColumn(
-                name: "empresaId",
-                table: "User",
-                newName: "Empresaid");
+            migrationBuilder.RenameColumn(name: "empresaId", table: "User", newName: "Empresaid");
 
             migrationBuilder.RenameIndex(
                 name: "IX_User_empresaId",
                 table: "User",
-                newName: "IX_User_Empresaid");
+                newName: "IX_User_Empresaid"
+            );
 
             migrationBuilder.AlterColumn<int>(
                 name: "Empresaid",
@@ -30,20 +26,23 @@ namespace api.Migrations
                 type: "int",
                 nullable: true,
                 oldClrType: typeof(int),
-                oldType: "int");
+                oldType: "int"
+            );
 
             migrationBuilder.AddColumn<bool>(
                 name: "isRDA",
                 table: "User",
                 type: "bit",
                 nullable: false,
-                defaultValue: false);
+                defaultValue: false
+            );
 
             migrationBuilder.CreateTable(
                 name: "UsuariosEmpresas",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "int", nullable: false)
+                    id = table
+                        .Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     userId = table.Column<int>(type: "int", nullable: false),
                     empresaId = table.Column<int>(type: "int", nullable: false)
@@ -56,56 +55,55 @@ namespace api.Migrations
                         column: x => x.empresaId,
                         principalTable: "Empresas",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Cascade
+                    );
                     table.ForeignKey(
                         name: "FK_UsuariosEmpresas_User_userId",
                         column: x => x.userId,
                         principalTable: "User",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+                        onDelete: ReferentialAction.Cascade
+                    );
+                }
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_UsuariosEmpresas_empresaId",
                 table: "UsuariosEmpresas",
-                column: "empresaId");
+                column: "empresaId"
+            );
 
             migrationBuilder.CreateIndex(
                 name: "IX_UsuariosEmpresas_userId",
                 table: "UsuariosEmpresas",
-                column: "userId");
+                column: "userId"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_User_Empresas_Empresaid",
                 table: "User",
                 column: "Empresaid",
                 principalTable: "Empresas",
-                principalColumn: "id");
+                principalColumn: "id"
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_User_Empresas_Empresaid",
-                table: "User");
+            migrationBuilder.DropForeignKey(name: "FK_User_Empresas_Empresaid", table: "User");
 
-            migrationBuilder.DropTable(
-                name: "UsuariosEmpresas");
+            migrationBuilder.DropTable(name: "UsuariosEmpresas");
 
-            migrationBuilder.DropColumn(
-                name: "isRDA",
-                table: "User");
+            migrationBuilder.DropColumn(name: "isRDA", table: "User");
 
-            migrationBuilder.RenameColumn(
-                name: "Empresaid",
-                table: "User",
-                newName: "empresaId");
+            migrationBuilder.RenameColumn(name: "Empresaid", table: "User", newName: "empresaId");
 
             migrationBuilder.RenameIndex(
                 name: "IX_User_Empresaid",
                 table: "User",
-                newName: "IX_User_empresaId");
+                newName: "IX_User_empresaId"
+            );
 
             migrationBuilder.AlterColumn<int>(
                 name: "empresaId",
@@ -115,7 +113,8 @@ namespace api.Migrations
                 defaultValue: 0,
                 oldClrType: typeof(int),
                 oldType: "int",
-                oldNullable: true);
+                oldNullable: true
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_User_Empresas_empresaId",
@@ -123,7 +122,8 @@ namespace api.Migrations
                 column: "empresaId",
                 principalTable: "Empresas",
                 principalColumn: "id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Cascade
+            );
         }
     }
 }

@@ -22,7 +22,8 @@ public class RdaUnitOfWork : IRdaUnitOfWork
 
     private bool _disposed;
 
-    public IRepository<TEntity> GetRepository<TEntity>() where TEntity : class
+    public IRepository<TEntity> GetRepository<TEntity>()
+        where TEntity : class
     {
         if (_repositories.TryGetValue(typeof(TEntity).FullName!, out var repository))
         {

@@ -2,14 +2,16 @@ using System.Linq.Expressions;
 
 namespace api.DataAccess;
 
-public interface IRepository<TEntity> where TEntity : class
+public interface IRepository<TEntity>
+    where TEntity : class
 {
     public IQueryable<TEntity> GetRepository();
 
     public IQueryable<TEntity> GetAll(
         Expression<Func<TEntity, bool>>? filter = null,
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
-        string includeProperties = "");
+        string includeProperties = ""
+    );
 
     public TEntity? GetById(object id);
 

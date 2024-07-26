@@ -15,15 +15,14 @@ namespace api.Migrations
                 table: "Rol",
                 type: "int",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 0
+            );
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "jerarquia",
-                table: "Rol");
+            migrationBuilder.DropColumn(name: "jerarquia", table: "Rol");
         }
     }
 }

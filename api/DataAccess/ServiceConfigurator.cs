@@ -1,5 +1,3 @@
 namespace api.DataAccess;
 
-public class ServiceConfigurator
-{
-}
+public class ServiceConfigurator { }
