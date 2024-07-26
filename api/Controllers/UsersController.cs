@@ -68,4 +68,23 @@ public class UsersController : ControllerBase
 
         return Created();
     }
+
+    [HttpPost]
+    [Route("editSelfConductor")]
+    [Authorize(Roles = "CONDUCTOR")]
+    public async Task<IActionResult> EditSelfConductor(
+        [FromBody] UpdateSelfConductorDto conductorDto
+    )
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userName = User?.Identity?.Name;
+        if (userName == null)
+            return BadRequest("No se pudo obtener el id del usuario actual");
+        
+        await _userService.EditSelfConductor(conductorDto, userName);
+
+        return Ok("Teléfono actualizado correctamente");
+    }
 }

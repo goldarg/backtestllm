@@ -10,6 +10,7 @@ using api.Models.DTO.Conductor;
 using api.Models.DTO.Empresa;
 using api.Models.DTO.Rol;
 using api.Models.DTO.User;
+using api.Models.DTO.Vehiculo;
 using api.Models.Entities;
 using Newtonsoft.Json.Linq;
 
@@ -260,21 +261,24 @@ namespace api.Services
                     "crm/v2/Alquileres?fields=",
                     ["Conductor", "Dominio_Alquiler"],
                     conductoresCrmIds,
-                    vehiculosConductores
+                    vehiculosConductores,
+                    "Alquileres"
                 ),
                 // Servicios
                 GetVehiculosPorUsuario(
                     "crm/v2/Servicios_RDA?fields=",
                     ["Conductor", "Dominio"],
                     conductoresCrmIds,
-                    vehiculosConductores
+                    vehiculosConductores,
+                    "Servicios_RDA"
                 ),
                 // Renting
                 GetVehiculosPorUsuario(
                     "crm/v2/Renting?fields=",
                     ["Conductor", "Dominio"],
                     conductoresCrmIds,
-                    vehiculosConductores
+                    vehiculosConductores,
+                    "Renting"
                 )
             );
 
@@ -309,6 +313,25 @@ namespace api.Services
                 .SingleOrDefault();
         }
 
+        public async Task EditSelfConductor(UpdateSelfConductorDto conductorDto, string userName)
+        {
+            var user = _unitOfWork
+                .GetRepository<User>()
+                .GetAll()
+                .FirstOrDefault(x => x.userName == userName);
+
+            if (user == null || user.idCRM == null)
+                throw new NotFoundException("Usuario no encontrado");
+
+            // Actualizar el teléfono en el CRM
+            await ActualizarTelefonoCRM(user.idCRM, conductorDto.Telefono);
+
+            // Actualizar el teléfono en la base de datos local
+            user.telefono = conductorDto.Telefono;
+            _unitOfWork.GetRepository<User>().Update(user);
+            _unitOfWork.SaveChanges();
+        }
+
         // Usuarios Empresas
         public List<UsuariosEmpresas>? GetAllUsuariosEmpresas()
             => [.. _unitOfWork.GetRepository<UsuariosEmpresas>().GetAll()];
@@ -331,14 +354,13 @@ namespace api.Services
                 string uri,
                 string[] fields,
                 List<string> conductoresIds,
-                List<ConductorVehiculoDto> vehiculosConductores
+                List<ConductorVehiculoDto> vehiculosConductores,
+                string tipoContrato
             )
         {
             var dataUri = new StringBuilder(uri);
             foreach (var field in fields)
-            {
                 dataUri.Append(field).Append(",");
-            }
 
             var jsonData = await _crmService.Get(dataUri.ToString().TrimEnd(','));
             var dataArray = JArray.Parse(jsonData);
@@ -352,10 +374,11 @@ namespace api.Services
                 if (!conductoresIds.Any(c => c == conductor.id))
                     continue;
 
-                var dominio = item[fields[1]].ToObject<CRMRelatedObject>();
+                var dominio = item[fields[1]].ToObject<VehiculoRelacionadoDto>();
+                dominio.Tipo_de_Contrato = tipoContrato;
 
                 vehiculosConductores.Add(
-                    new ConductorVehiculoDto { conductorCrmId = conductor.id, vehiculo = dominio }
+                    new ConductorVehiculoDto { conductorCrmId = conductor.id, vehiculo = dominio, }
                 );
             }
         }
@@ -458,6 +481,26 @@ namespace api.Services
             var createdId = (responseData?.details?.id)
                 ?? throw new BadRequestException("Error al crear el usuario en CRM, no se obtuvo el id");
             return createdId;
+        }
+
+        private async Task ActualizarTelefonoCRM(string idCRM, string nuevoTelefono)
+        {
+            var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+
+            var jsonObj = new { data = new[] { new { Phone = nuevoTelefono } } };
+            var jsonData = JsonSerializer.Serialize(jsonObj);
+            var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            var response = await httpClient.PutAsync($"crm/v2/Contacts/{idCRM}", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse>(responseString);
+
+            if (apiResponse == null || apiResponse.data == null || apiResponse.data.Count == 0)
+                throw new BadRequestException("Respuesta inválida del CRM");
+
+            var responseData = apiResponse.data[0];
+            if (responseData.status != "success")
+                throw new BadRequestException("Error al actualizar el teléfono en CRM");
         }
     }
 }

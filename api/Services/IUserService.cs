@@ -11,6 +11,7 @@ namespace api.Services
         User? GetUserById(int id);
         Task DesactivarUsuario(DesactivarConductorDto desactivarDto, System.Security.Claims.ClaimsPrincipal User);
         Task CreateUser(CreateUserDto userDto, System.Security.Claims.ClaimsPrincipal User);
+        Task EditSelfConductor(UpdateSelfConductorDto conductorDto, string userName);
 
         // Usuarios Empresas
         List<UsuariosEmpresas>? GetAllUsuariosEmpresas();
