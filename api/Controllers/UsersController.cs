@@ -144,9 +144,7 @@ public class UsersController : ControllerBase
                 (x, v) =>
                 {
                     if (v != null)
-                    {
                         x.ConductorPermiso.VehiculosAsignados.Add(v.vehiculo);
-                    }
                     return x.ConductorPermiso;
                 }
             )
@@ -165,9 +163,7 @@ public class UsersController : ControllerBase
     {
         var dataUri = new StringBuilder(uri);
         foreach (var field in fields)
-        {
             dataUri.Append(field).Append(",");
-        }
 
         var jsonData = await _crmService.Get(dataUri.ToString().TrimEnd(','));
         var dataArray = JArray.Parse(jsonData);
@@ -307,10 +303,7 @@ public class UsersController : ControllerBase
                     estado = EstadosUsuario.activo,
                     isRDA = true,
                     idCRM = createdId,
-                    Roles = new List<UsuariosRoles>
-                    {
-                        new UsuariosRoles { rolId = rolSelected.id }
-                    },
+                    Roles = new List<UsuariosRoles> { new() { rolId = rolSelected.id } },
                     EmpresasAsignaciones = empresasSelected
                         .Select(empresa => new UsuariosEmpresas { empresaId = empresa.id })
                         .ToList()
@@ -321,6 +314,37 @@ public class UsersController : ControllerBase
         return Created();
     }
 
+    [HttpPost]
+    [Route("editSelfConductor")]
+    [Authorize(Roles = "CONDUCTOR")]
+    public async Task<IActionResult> EditSelfConductor(
+        [FromBody] UpdateSelfConductorDto conductorDto
+    )
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userName = User?.Identity?.Name;
+        if (userName == null)
+            return BadRequest("No se pudo obtener el id del usuario actual");
+        var user = _unitOfWork
+            .GetRepository<User>()
+            .GetAll()
+            .FirstOrDefault(x => x.userName == userName);
+        if (user == null || user.idCRM == null)
+            return NotFound("Usuario no encontrado");
+
+        // Actualizar el teléfono en el CRM
+        await ActualizarTelefonoCRM(user.idCRM, conductorDto.Telefono);
+
+        // Actualizar el teléfono en la base de datos local
+        user.telefono = conductorDto.Telefono;
+        _unitOfWork.GetRepository<User>().Update(user);
+        _unitOfWork.SaveChanges();
+
+        return Ok("Teléfono actualizado correctamente");
+    }
+
     /// <summary>
     /// Valida que el usuario a crear sea válido
     /// </summary>
@@ -328,7 +352,7 @@ public class UsersController : ControllerBase
     /// <exception cref="BadRequestException"></exception>
     private (Rol rol, List<Empresa> empresas) ValidarUsuario(CreateUserDto userDto)
     {
-        bool isUserExists = _unitOfWork
+        var isUserExists = _unitOfWork
             .GetRepository<User>()
             .GetAll()
             .Any(x => x.userName == userDto.Email);
@@ -405,7 +429,6 @@ public class UsersController : ControllerBase
 
         var responseData = apiResponse.data[0];
         if (responseData.status != "success")
-        {
             switch (responseData.code)
             {
                 case "DUPLICATE_DATA":
@@ -416,11 +439,31 @@ public class UsersController : ControllerBase
                     // TODO habria que loggear responseData.message
                     throw new BadRequestException("Error al crear el usuario en CRM");
             }
-        }
+
         var createdId = responseData?.details?.id;
         if (createdId == null)
             throw new BadRequestException("Error al crear el usuario en CRM, no se obtuvo el id");
         return createdId;
+    }
+
+    private async Task ActualizarTelefonoCRM(string idCRM, string nuevoTelefono)
+    {
+        var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+
+        var jsonObj = new { data = new[] { new { Phone = nuevoTelefono } } };
+        var jsonData = JsonSerializer.Serialize(jsonObj);
+        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var response = await httpClient.PutAsync($"crm/v2/Contacts/{idCRM}", content);
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        var apiResponse = JsonSerializer.Deserialize<ApiResponse>(responseString);
+
+        if (apiResponse == null || apiResponse.data == null || apiResponse.data.Count == 0)
+            throw new BadRequestException("Respuesta inválida del CRM");
+
+        var responseData = apiResponse.data[0];
+        if (responseData.status != "success")
+            throw new BadRequestException("Error al actualizar el teléfono en CRM");
     }
 
     private class ResponseData
