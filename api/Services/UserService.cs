@@ -23,8 +23,12 @@ namespace api.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly CRMService _crmService;
 
-        public UserService(IRdaUnitOfWork unitOfWork, IUserIdentityService userIdentityService, IHttpClientFactory httpClientFactory,
-            CRMService crmService)
+        public UserService(
+            IRdaUnitOfWork unitOfWork,
+            IUserIdentityService userIdentityService,
+            IHttpClientFactory httpClientFactory,
+            CRMService crmService
+        )
         {
             _unitOfWork = unitOfWork;
             _userIdentityService = userIdentityService;
@@ -32,7 +36,10 @@ namespace api.Services
             _crmService = crmService;
         }
 
-        public async Task CreateUser(CreateUserDto userDto, System.Security.Claims.ClaimsPrincipal User)
+        public async Task CreateUser(
+            CreateUserDto userDto,
+            System.Security.Claims.ClaimsPrincipal User
+        )
         {
             var (rolSelected, empresasSelected) = ValidarUsuario(userDto, User);
             var createdId = await CrearUsuarioCRM(userDto);
@@ -48,10 +55,7 @@ namespace api.Services
                         estado = EstadosUsuario.activo,
                         isRDA = true,
                         idCRM = createdId,
-                        Roles =
-                        [
-                            new() { rolId = rolSelected.id }
-                        ],
+                        Roles = [new() { rolId = rolSelected.id }],
                         EmpresasAsignaciones = empresasSelected
                             .Select(empresa => new UsuariosEmpresas { empresaId = empresa.id })
                             .ToList()
@@ -60,13 +64,18 @@ namespace api.Services
             _unitOfWork.SaveChanges();
         }
 
-        public async Task DesactivarUsuario(DesactivarConductorDto desactivarDto, System.Security.Claims.ClaimsPrincipal User)
+        public async Task DesactivarUsuario(
+            DesactivarConductorDto desactivarDto,
+            System.Security.Claims.ClaimsPrincipal User
+        )
         {
             //Valido que el usuario del request puede editar al usuario target
             var maxJerarquiaRequest = _userIdentityService.GetJerarquiaRolMayor(User);
             var usersRepo = _unitOfWork.GetRepository<User>().GetAll();
 
-            var user = usersRepo.Where(x => x.idCRM == desactivarDto.usuarioCrmId).SingleOrDefault();
+            var user = usersRepo
+                .Where(x => x.idCRM == desactivarDto.usuarioCrmId)
+                .SingleOrDefault();
 
             if (user == null)
                 throw new BadRequestException("No se encontró el usuario a eliminar");
@@ -132,9 +141,12 @@ namespace api.Services
                     desasignarVehiculosContent
                 );
 
-                var desasignarResponse = await desasignarVehiculosResponse.Content.ReadAsStringAsync();
+                var desasignarResponse =
+                    await desasignarVehiculosResponse.Content.ReadAsStringAsync();
 
-                var desasignarApiResponse = JsonSerializer.Deserialize<ApiResponse>(desasignarResponse);
+                var desasignarApiResponse = JsonSerializer.Deserialize<ApiResponse>(
+                    desasignarResponse
+                );
 
                 if (
                     desasignarApiResponse == null
@@ -157,8 +169,8 @@ namespace api.Services
             {
                 data = new[]
                 {
-                new { id = desactivarDto.usuarioCrmId, Estado_Mirai = EstadosUsuario.inactivo }
-            }
+                    new { id = desactivarDto.usuarioCrmId, Estado_Mirai = EstadosUsuario.inactivo }
+                }
             };
             var jsonData = JsonSerializer.Serialize(jsonObj);
             var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
@@ -184,28 +196,37 @@ namespace api.Services
         {
             var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario(User);
 
-            return [.. _unitOfWork
-                .GetRepository<User>()
-                .GetAll()
-                .Where(u =>
-                    u.Roles.Any(reg => reg.Rol.nombreRol == "CONDUCTOR")
-                    && u.EmpresasAsignaciones.Any(ea => empresasDisponibles.Contains(ea.Empresa.idCRM))
-                )
-                .Select(x => new ConductorEmpresaDto
-                {
-                    id = x.idCRM,
-                    name = x.nombre + " " + x.apellido, //Mismo formato que otroga el CRM
-                    empresaId = x.EmpresasAsignaciones.First().Empresa.idCRM
-                })];
+            return
+            [
+                .. _unitOfWork
+                    .GetRepository<User>()
+                    .GetAll()
+                    .Where(u =>
+                        u.Roles.Any(reg => reg.Rol.nombreRol == "CONDUCTOR")
+                        && u.EmpresasAsignaciones.Any(ea =>
+                            empresasDisponibles.Contains(ea.Empresa.idCRM)
+                        )
+                    )
+                    .Select(x => new ConductorEmpresaDto
+                    {
+                        id = x.idCRM,
+                        name = x.nombre + " " + x.apellido, //Mismo formato que otroga el CRM
+                        empresaId = x.EmpresasAsignaciones.First().Empresa.idCRM
+                    })
+            ];
         }
 
-        public async Task<List<ConductorDto>>? GetListaUsuarios(System.Security.Claims.ClaimsPrincipal User)
+        public async Task<List<ConductorDto>>? GetListaUsuarios(
+            System.Security.Claims.ClaimsPrincipal User
+        )
         {
             var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario(User);
-            var topeJerarquia = _userIdentityService.ListarRolesSuperiores(User).Max(x => x.jerarquia);
+            var topeJerarquia = _userIdentityService
+                .ListarRolesSuperiores(User)
+                .Max(x => x.jerarquia);
 
             //Obtengo los datos necesarios
-            var uri = new StringBuilder("crm/v2/Contacts?fields=id,Full_Name,Cargo");
+            var uri = new StringBuilder("crm/v2/Contacts?fields=id,Full_Name,Cargo,Phone");
 
             var json = await _crmService.Get(uri.ToString());
             var conductoresCrm = JsonSerializer.Deserialize<List<ConductorDto>>(json);
@@ -217,13 +238,19 @@ namespace api.Services
                 .Where(x =>
                     conductoresCrm.Select(y => y.id).ToList().Contains(x.idCRM)
                     && x.Roles.All(x => x.Rol.jerarquia < topeJerarquia) //Si tiene 1 rol superior o igual, no va
-                    && x.EmpresasAsignaciones.Any(x => empresasDisponibles.Contains(x.Empresa.idCRM))
+                    && x.EmpresasAsignaciones.Any(x =>
+                        empresasDisponibles.Contains(x.Empresa.idCRM)
+                    )
                 )
                 .Select(x => new
                 {
                     idCRM = x.idCRM,
                     Roles = x
-                        .Roles.Select(x => new RolDto { Id = x.Rol.id, NombreRol = x.Rol.nombreRol })
+                        .Roles.Select(x => new RolDto
+                        {
+                            Id = x.Rol.id,
+                            NombreRol = x.Rol.nombreRol
+                        })
                         .ToList(),
                     Empresas = x
                         .EmpresasAsignaciones.Select(x => new EmpresaDto
@@ -325,38 +352,35 @@ namespace api.Services
 
             // Actualizar el teléfono en el CRM
             await ActualizarTelefonoCRM(user.idCRM, conductorDto.Telefono);
-
-            // Actualizar el teléfono en la base de datos local
-            user.telefono = conductorDto.Telefono;
-            _unitOfWork.GetRepository<User>().Update(user);
-            _unitOfWork.SaveChanges();
         }
 
         // Usuarios Empresas
-        public List<UsuariosEmpresas>? GetAllUsuariosEmpresas()
-            => [.. _unitOfWork.GetRepository<UsuariosEmpresas>().GetAll()];
-        
-        public List<Empresa?> GetEmpresasDelUsuario(int usuarioId)
-            => [.. _unitOfWork
-                .GetRepository<UsuariosEmpresas>()
-                .GetAll()
-                .Where(x => x.userId == usuarioId)
-                .Select(x => x.Empresa)];
-            
-        public UsuariosEmpresas? GetUsuariosEmpresasById(int id)
-            => _unitOfWork.GetRepository<UsuariosEmpresas>().GetById(id);
+        public List<UsuariosEmpresas>? GetAllUsuariosEmpresas() =>
+            [.. _unitOfWork.GetRepository<UsuariosEmpresas>().GetAll()];
+
+        public List<Empresa?> GetEmpresasDelUsuario(int usuarioId) =>
+            [
+                .. _unitOfWork
+                    .GetRepository<UsuariosEmpresas>()
+                    .GetAll()
+                    .Where(x => x.userId == usuarioId)
+                    .Select(x => x.Empresa)
+            ];
+
+        public UsuariosEmpresas? GetUsuariosEmpresasById(int id) =>
+            _unitOfWork.GetRepository<UsuariosEmpresas>().GetById(id);
 
         // Usuarios Roles
-        public List<UsuariosRoles>? GetAllUsuariosRoles()
-            => [.. _unitOfWork.GetRepository<UsuariosRoles>().GetAll()];
+        public List<UsuariosRoles>? GetAllUsuariosRoles() =>
+            [.. _unitOfWork.GetRepository<UsuariosRoles>().GetAll()];
 
         private async Task GetVehiculosPorUsuario(
-                string uri,
-                string[] fields,
-                List<string> conductoresIds,
-                List<ConductorVehiculoDto> vehiculosConductores,
-                string tipoContrato
-            )
+            string uri,
+            string[] fields,
+            List<string> conductoresIds,
+            List<ConductorVehiculoDto> vehiculosConductores,
+            string tipoContrato
+        )
         {
             var dataUri = new StringBuilder(uri);
             foreach (var field in fields)
@@ -382,13 +406,16 @@ namespace api.Services
                 );
             }
         }
-        
+
         /// <summary>
         /// Valida que el usuario a crear sea válido
         /// </summary>
         /// <param name="userDto"></param>
         /// <exception cref="BadRequestException"></exception>
-        private (Rol rol, List<Empresa> empresas) ValidarUsuario(CreateUserDto userDto, System.Security.Claims.ClaimsPrincipal User)
+        private (Rol rol, List<Empresa> empresas) ValidarUsuario(
+            CreateUserDto userDto,
+            System.Security.Claims.ClaimsPrincipal User
+        )
         {
             bool isUserExists = _unitOfWork
                 .GetRepository<User>()
@@ -397,11 +424,12 @@ namespace api.Services
             if (isUserExists)
                 throw new BadRequestException("El correo electrónico ya está en uso");
             // el rolId tiene que ser un rol válido
-            var rolSelected = _unitOfWork
-                .GetRepository<Rol>()
-                .GetAll()
-                .SingleOrDefault(x => x.id == userDto.RolId)
-                    ?? throw new BadRequestException("El rol seleccionado no es válido");
+            var rolSelected =
+                _unitOfWork
+                    .GetRepository<Rol>()
+                    .GetAll()
+                    .SingleOrDefault(x => x.id == userDto.RolId)
+                ?? throw new BadRequestException("El rol seleccionado no es válido");
             // las empresasIdsCrm tienen que ser empresas válidas
             var empresasSelected = _unitOfWork
                 .GetRepository<Empresa>()
@@ -420,7 +448,9 @@ namespace api.Services
             if (rolSelected.nombreRol == "CONDUCTOR" && empresasSelected.Count > 1)
                 throw new BadRequestException("Un conductor solo puede tener una empresa asignada");
             // el usuario actual que crea, debe tener control sobre esas empresas
-            var empresasDisponiblesSegunPermiso = _userIdentityService.ListarEmpresasDelUsuario(User);
+            var empresasDisponiblesSegunPermiso = _userIdentityService.ListarEmpresasDelUsuario(
+                User
+            );
             if (!empresasSelected.All(x => empresasDisponiblesSegunPermiso.Contains(x.idCRM)))
                 throw new BadRequestException("No tienes permisos para asignar esas empresas");
             // TODO sino sos conductor no podes tener un auto asignado
@@ -441,18 +471,18 @@ namespace api.Services
             {
                 data = new[]
                 {
-                new
-                {
-                    // la cuenta a la que pertenece, no se envia al CRM ya que no puede manejar multiples
-                    First_Name = userDto.Nombre,
-                    Last_Name = userDto.Apellido,
-                    Email = userDto.Email,
-                    // puesto
-                    Cargo = userDto.Puesto,
-                    Phone = userDto.Telefono,
-                    Comentario = "cargado desde plataforma"
+                    new
+                    {
+                        // la cuenta a la que pertenece, no se envia al CRM ya que no puede manejar multiples
+                        First_Name = userDto.Nombre,
+                        Last_Name = userDto.Apellido,
+                        Email = userDto.Email,
+                        // puesto
+                        Cargo = userDto.Puesto,
+                        Phone = userDto.Telefono,
+                        Comentario = "cargado desde plataforma"
+                    }
                 }
-            }
             };
             var jsonData = JsonSerializer.Serialize(jsonObj);
             var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
@@ -478,8 +508,11 @@ namespace api.Services
                         throw new BadRequestException("Error al crear el usuario en CRM");
                 }
             }
-            var createdId = (responseData?.details?.id)
-                ?? throw new BadRequestException("Error al crear el usuario en CRM, no se obtuvo el id");
+            var createdId =
+                (responseData?.details?.id)
+                ?? throw new BadRequestException(
+                    "Error al crear el usuario en CRM, no se obtuvo el id"
+                );
             return createdId;
         }
 

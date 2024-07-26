@@ -59,11 +59,6 @@ public class UserConfigurator
             .HasColumnName("idCRM")
             .HasColumnType("nvarchar")
             .HasMaxLength(100);
-        builder
-            .Property(x => x.telefono)
-            .HasColumnName("telefono")
-            .HasColumnType("nvarchar")
-            .HasMaxLength(100);
 
         //Relaciones
         builder

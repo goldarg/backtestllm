@@ -23,5 +23,6 @@ namespace api.Models.DTO.Conductor
         public IList<VehiculoRelacionadoDto> VehiculosAsignados { get; set; } =
             new List<VehiculoRelacionadoDto>();
         public string? Estado { get; set; } //Este campo viene de
+        public string? Phone { get; set; }
     }
 }
