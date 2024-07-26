@@ -1,4 +1,5 @@
 using api.Configuration;
+using api.Models.DTO.Conductor;
 using api.Models.DTO.User;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -47,11 +48,11 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
-    [HttpPost("DesactivarUsuario/{usuarioCrmId}")]
+    [HttpPost("DesactivarUsuario")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public async Task<IActionResult> DesactivarUsuario(string usuarioCrmId)
+    public async Task<IActionResult> DesactivarUsuario(DesactivarConductorDto desactivarDto)
     {
-        await _userService.DesactivarUsuario(usuarioCrmId, User);
+        await _userService.DesactivarUsuario(desactivarDto, User);
 
         return Ok();
     }

@@ -9,7 +9,7 @@ namespace api.Services
         Task<List<ConductorDto>>? GetListaUsuarios(System.Security.Claims.ClaimsPrincipal User);
         List<ConductorEmpresaDto> GetConductores(System.Security.Claims.ClaimsPrincipal User);
         User? GetUserById(int id);
-        Task DesactivarUsuario(string usuarioCrmId, System.Security.Claims.ClaimsPrincipal User);
+        Task DesactivarUsuario(DesactivarConductorDto desactivarDto, System.Security.Claims.ClaimsPrincipal User);
         Task CreateUser(CreateUserDto userDto, System.Security.Claims.ClaimsPrincipal User);
 
         // Usuarios Empresas

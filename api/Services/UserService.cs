@@ -5,6 +5,7 @@ using api.Connected_Services;
 using api.DataAccess;
 using api.Exceptions;
 using api.Models.DTO;
+using api.Models.DTO.Common;
 using api.Models.DTO.Conductor;
 using api.Models.DTO.Empresa;
 using api.Models.DTO.Rol;
@@ -58,16 +59,13 @@ namespace api.Services
             _unitOfWork.SaveChanges();
         }
 
-        public async Task DesactivarUsuario(string usuarioCrmId, System.Security.Claims.ClaimsPrincipal User)
+        public async Task DesactivarUsuario(DesactivarConductorDto desactivarDto, System.Security.Claims.ClaimsPrincipal User)
         {
+            //Valido que el usuario del request puede editar al usuario target
             var maxJerarquiaRequest = _userIdentityService.GetJerarquiaRolMayor(User);
+            var usersRepo = _unitOfWork.GetRepository<User>().GetAll();
 
-            //Valido que exista en la DB, luego cambio en CRM, luego inactivo en la DB
-            var user = _unitOfWork
-            .GetRepository<User>()
-            .GetAll()
-            .Where(x => x.idCRM == usuarioCrmId)
-            .SingleOrDefault();
+            var user = usersRepo.Where(x => x.idCRM == desactivarDto.usuarioCrmId).SingleOrDefault();
 
             if (user == null)
                 throw new BadRequestException("No se encontró el usuario a eliminar");
@@ -78,9 +76,88 @@ namespace api.Services
                 throw new BadRequestException("No se poseen permisos para modificar este usuario");
 
             var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+
+            //Desasigno los autos del usuario
+            var sinAsignarUserId = usersRepo
+                .Where(x => x.nombre == "Sin" && x.apellido == "Asignar")
+                .Select(x => x.idCRM)
+                .SingleOrDefault();
+
+            if (sinAsignarUserId == null)
+                throw new BadRequestException(
+                    "Error al desvincular los vehículos del usuario a desactivar"
+                );
+
+            foreach (
+                var vehiculosMismoModulo in desactivarDto.vehiculosRelacionados.GroupBy(x =>
+                    x.Tipo_de_Contrato
+                )
+            )
+            {
+                string criteriaFormat = "(id:equals:{0})";
+                string concatenatedIds = string.Join(
+                    " or ",
+                    vehiculosMismoModulo.Select(id => string.Format(criteriaFormat, id))
+                );
+                string searchCriteria = $"criteria=({concatenatedIds})";
+
+                //Busco los ID de los contratos internos a modificar
+                var vehiculosIds = vehiculosMismoModulo.Select(x => x.id).Append(",");
+                var contratosUrl = $"crm/v2/{vehiculosMismoModulo.Key}?fields=Id&" + searchCriteria;
+                var contratosResponse = await _crmService.Get(contratosUrl);
+                var contratosApiResponse = JsonSerializer.Deserialize<List<DeserializeIdDto>>(
+                    contratosResponse
+                );
+                //Armo el JSON para actualizar ese modulo con los ID que recibi, y lo envio
+                var desasignarVehiculosJson = new
+                {
+                    data = contratosApiResponse
+                        .Select(register => new
+                        {
+                            id = register.id,
+                            Conductor = new { id = sinAsignarUserId }
+                        })
+                        .ToArray()
+                };
+
+                var desasignarVehiculoJsonData = JsonSerializer.Serialize(desasignarVehiculosJson);
+                var desasignarVehiculosContent = new StringContent(
+                    desasignarVehiculoJsonData,
+                    Encoding.UTF8,
+                    "application/json"
+                );
+                var desasignarVehiculosResponse = await httpClient.PostAsync(
+                    $"crm/v2/{vehiculosMismoModulo.Key}/upsert",
+                    desasignarVehiculosContent
+                );
+
+                var desasignarResponse = await desasignarVehiculosResponse.Content.ReadAsStringAsync();
+
+                var desasignarApiResponse = JsonSerializer.Deserialize<ApiResponse>(desasignarResponse);
+
+                if (
+                    desasignarApiResponse == null
+                    || desasignarApiResponse.data == null
+                    || desasignarApiResponse.data.Count == 0
+                )
+                    throw new BadRequestException("Respuesta inválida del CRM");
+
+                var desasignarResponseData = desasignarApiResponse.data[0];
+                if (desasignarResponseData.status != "success")
+                {
+                    throw new BadRequestException(
+                        "Error al desasignar los vehiculos del usuario en el CRM"
+                    );
+                }
+            }
+
+            //Desactivo el usuario en el CRM y luego en la DB
             var jsonObj = new
             {
-                data = new[] { new { id = usuarioCrmId, Estado_Mirai = EstadosUsuario.inactivo } }
+                data = new[]
+                {
+                new { id = desactivarDto.usuarioCrmId, Estado_Mirai = EstadosUsuario.inactivo }
+            }
             };
             var jsonData = JsonSerializer.Serialize(jsonObj);
             var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
@@ -94,16 +171,7 @@ namespace api.Services
             var responseData = apiResponse.data[0];
             if (responseData.status != "success")
             {
-                switch (responseData.code)
-                {
-                    case "DUPLICATE_DATA":
-                        throw new BadRequestException(
-                            "No se encontró, o no existe, el usuario a editar en el CRM"
-                        );
-                    default:
-                        // TODO habria que loggear responseData.message
-                        throw new BadRequestException("Error al editar el usuario en CRM");
-                }
+                throw new BadRequestException("Error al editar el usuario en CRM");
             }
 
             user.estado = EstadosUsuario.inactivo;

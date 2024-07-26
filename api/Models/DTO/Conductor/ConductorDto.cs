@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Models.DTO.Empresa;
 using api.Models.DTO.Rol;
+using api.Models.DTO.Vehiculo;
 using api.Models.Entities;
 
 namespace api.Models.DTO.Conductor
@@ -19,8 +20,8 @@ namespace api.Models.DTO.Conductor
         public IList<RolDto> Roles { get; set; }
 
         //TODO campo permiso (quedo pendiente ver con funcional si esto es el tema de Aprobador)
-        public IList<CRMRelatedObject> VehiculosAsignados { get; set; } =
-            new List<CRMRelatedObject>();
+        public IList<VehiculoRelacionadoDto> VehiculosAsignados { get; set; } =
+            new List<VehiculoRelacionadoDto>();
         public string? Estado { get; set; } //Este campo viene de
     }
 }
