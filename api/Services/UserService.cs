@@ -332,8 +332,7 @@ namespace api.Services
             return _unitOfWork
                 .GetRepository<User>()
                 .GetAll()
-                .Where(x => x.idCRM == id.ToString())
-                .SingleOrDefault();
+                .SingleOrDefault(x => x.idCRM == id.ToString());
         }
 
         public async Task EditUser(ClaimsPrincipal User, string usuarioCrmId, UserDto userDto)
@@ -342,10 +341,15 @@ namespace api.Services
             var userDb = _unitOfWork
                 .GetRepository<User>()
                 .GetAll()
-                .Where(x => x.idCRM == usuarioCrmId)
-                .SingleOrDefault();
+                .SingleOrDefault(x => x.idCRM == usuarioCrmId);
             if (userDb == null)
                 throw new NotFoundException("Usuario no encontrado");
+            // no puedo modificar a un usuario con jerarquia igual o mayor
+            var rolesInferiores = _userIdentityService.ListarRolesInferiores(User);
+            if (userDb.Roles.Any(ur => rolesInferiores.Any(ri => ur.Rol.jerarquia >= ri.jerarquia)))
+                throw new UnauthorizedAccessException(
+                    "No puedes modificar a un usuario con jerarquía igual o mayor."
+                );
 
             await ActualizarUsuarioCRM(usuarioCrmId, userDto);
 
