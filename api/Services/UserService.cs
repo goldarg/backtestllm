@@ -61,9 +61,7 @@ namespace api.Services
             _unitOfWork.SaveChanges();
         }
 
-        public async Task DesactivarUsuario(
-            DesactivarConductorDto desactivarDto
-        )
+        public async Task DesactivarUsuario(DesactivarConductorDto desactivarDto)
         {
             //Valido que el usuario del request puede editar al usuario target
             var maxJerarquiaRequest = _userIdentityService.GetJerarquiaRolMayor();
@@ -215,9 +213,7 @@ namespace api.Services
         public async Task<List<ConductorDto>>? GetListaUsuarios()
         {
             var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario();
-            var topeJerarquia = _userIdentityService
-                .ListarRolesSuperiores()
-                .Max(x => x.jerarquia);
+            var topeJerarquia = _userIdentityService.ListarRolesSuperiores().Max(x => x.jerarquia);
 
             //Obtengo los datos necesarios
             var uri = new StringBuilder(
@@ -435,12 +431,21 @@ namespace api.Services
         /// Valida que el usuario a crear sea válido
         /// </summary>
         /// <param name="userDto"></param>
+        /// <param name="usuarioCrmId"></param>
         /// <exception cref="BadRequestException"></exception>
         private (Rol rol, List<Empresa> empresas) ValidarUsuario(
             UserDto userDto,
             string usuarioCrmId = ""
         )
         {
+            //  El puesto tiene que estar dentro de OpcionesCargos
+            var isPuestoExists = _unitOfWork
+                .GetRepository<OpcionesCargos>()
+                .GetAll()
+                .Any(x => x.Nombre == userDto.Puesto);
+            if (!isPuestoExists)
+                throw new BadRequestException("El puesto no es válido");
+
             var isUserExists = _unitOfWork
                 .GetRepository<User>()
                 .GetAll()

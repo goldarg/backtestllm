@@ -19,11 +19,6 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    [Route("getPuestosOptions")]
-    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public IActionResult GetPuestos() => Ok(CargoOptions.OpcionesValidas);
-
-    [HttpGet]
     [Route("GetListaUsuarios")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN,CONDUCTOR")]
     public async Task<IActionResult> GetListaUsuarios() =>
