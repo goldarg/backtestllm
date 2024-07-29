@@ -17,4 +17,7 @@
     <PackageReference Include="Microsoft.Identity.Web" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="8.0.7" />
   </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Attributes\"/>
+    </ItemGroup>
 </Project>

@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using api.Attributes;
 
 namespace api.Models.DTO.User
 {
@@ -16,8 +15,6 @@ namespace api.Models.DTO.User
 
         [Phone(ErrorMessage = "El número de teléfono no es válido")]
         public required string Telefono { get; set; }
-
-        [ValidCargo]
         public required string Puesto { get; set; }
 
         [MinLength(1, ErrorMessage = "Debe haber al menos una empresa en la lista")]
