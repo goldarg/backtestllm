@@ -18,7 +18,7 @@ public class EmpresasController : ControllerBase
     [HttpGet]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetAll()
-        => Ok(_empresaService.GetAll(User));
+        => Ok(_empresaService.GetAll());
 
 
     [HttpGet("{id}")]

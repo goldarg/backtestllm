@@ -5,7 +5,7 @@ namespace api.Services
 {
     public interface IRolService
     {
-        IEnumerable<RolDto>? GetAll(System.Security.Claims.ClaimsPrincipal User);
+        IEnumerable<RolDto>? GetAll();
         Rol? GetById(int id);
     }
 }

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using api.DataAccess;
 using api.Models.DTO.Empresa;
 using api.Models.Entities;
@@ -9,16 +8,16 @@ namespace api.Services
     {
         private readonly IUserIdentityService _userIdentityService;
         private readonly IRdaUnitOfWork _unitOfWork;
-        
+
         public EmpresaService(IUserIdentityService userIdentityService, IRdaUnitOfWork unitOfWork)
         {
             _userIdentityService = userIdentityService;
             _unitOfWork = unitOfWork;
         }
 
-        public List<EmpresaDto> GetAll(ClaimsPrincipal User)
+        public List<EmpresaDto> GetAll()
         {
-            var empresasUsuario = _userIdentityService.ListarEmpresasDelUsuario(User);
+            var empresasUsuario = _userIdentityService.ListarEmpresasDelUsuario();
 
             return _unitOfWork
                 .GetRepository<Empresa>()

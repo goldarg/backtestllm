@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using api.Connected_Services;
@@ -10,16 +9,16 @@ namespace api.Services
     {
         private readonly IUserIdentityService _identityService;
         private readonly CRMService _crmService;
-        
+
         public ContratoService(IUserIdentityService identityService, CRMService crmService)
         {
             _identityService = identityService;
             _crmService = crmService;
         }
 
-        public async Task<List<ContratoResponse>>? GetContratos(ClaimsPrincipal User)
+        public async Task<List<ContratoResponse>>? GetContratos()
         {
-            var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
+            var empresasDisponibles = _identityService.ListarEmpresasDelUsuario();
 
             var uri = new StringBuilder("crm/v2/Contratos?fields=id,Name,Cuenta");
             var json = await _crmService.Get(uri.ToString());

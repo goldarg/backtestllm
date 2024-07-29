@@ -7,12 +7,12 @@ namespace api.Services
 {
     public interface IUserService
     {
-        Task<List<ConductorDto>>? GetListaUsuarios(ClaimsPrincipal User);
-        List<ConductorEmpresaDto> GetConductores(ClaimsPrincipal User);
+        Task<List<ConductorDto>>? GetListaUsuarios();
+        List<ConductorEmpresaDto> GetConductores();
         User? GetUserById(int id);
-        Task DesactivarUsuario(DesactivarConductorDto desactivarDto, ClaimsPrincipal User);
-        Task CreateUser(UserDto userDto, ClaimsPrincipal User);
-        Task EditUser(ClaimsPrincipal User, string usuarioCrmId, UserDto userDto);
+        Task DesactivarUsuario(DesactivarConductorDto desactivarDto);
+        Task CreateUser(UserDto userDto);
+        Task EditUser(string usuarioCrmId, UserDto userDto);
         Task EditSelfConductor(UpdateSelfConductorDto conductorDto, string userName);
 
         // Usuarios Empresas

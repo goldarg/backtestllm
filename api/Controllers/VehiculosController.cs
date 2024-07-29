@@ -25,10 +25,10 @@ public class VehiculosController : ControllerBase
     [HttpGet]
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
     public async Task<IActionResult> GetVehiculos()
-        => Ok(await _vehiculoService.GetVehiculos(User));
+        => Ok(await _vehiculoService.GetVehiculos());
 
     [HttpGet("HistorialOperaciones")]
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
     public async Task<IActionResult> GetHistorialOperaciones([FromQuery] string dominio, [FromQuery] string tipoContrato)
-        => Ok(await _vehiculoService.HistorialOperaciones(User, dominio, tipoContrato));
+        => Ok(await _vehiculoService.HistorialOperaciones(dominio, tipoContrato));
 }

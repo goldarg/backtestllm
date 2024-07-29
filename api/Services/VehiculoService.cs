@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using api.Connected_Services;
@@ -77,9 +76,9 @@ namespace api.Services
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async Task<List<VehiculoDto>?> GetVehiculos(ClaimsPrincipal User)
+        public async Task<List<VehiculoDto>?> GetVehiculos()
         {
-            var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
+            var empresasDisponibles = _identityService.ListarEmpresasDelUsuario();
 
             //Get a Vehiculos con los datos que necesito
             var uri = new StringBuilder(
@@ -184,10 +183,9 @@ namespace api.Services
             return vehiculos.Where(x => empresasDisponibles.Contains(x.Cuenta.id)).ToList();
         }
 
-        public async Task<List<OperacionesVehiculoDto>> HistorialOperaciones(ClaimsPrincipal User,
-            string dominio, string tipoContrato)
+        public async Task<List<OperacionesVehiculoDto>> HistorialOperaciones(string dominio, string tipoContrato)
         {
-            var empresasDisponibles = _identityService.ListarEmpresasDelUsuario(User);
+            var empresasDisponibles = _identityService.ListarEmpresasDelUsuario();
             
             var uris = new Dictionary<string, string>
             {

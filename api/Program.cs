@@ -18,6 +18,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<AccessTokenHandler>();
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient(
     "CrmHttpClient",
     httpClient =>
@@ -49,6 +50,7 @@ builder.Services.AddScoped<IEmpresaService, EmpresaService>();
 builder.Services.AddScoped<IContratoService, ContratoService>();
 builder.Services.AddScoped<IRolService, RolService>();
 builder.Services.AddScoped<IVehiculoService, VehiculoService>();
+builder.Services.AddScoped<IClaimsProvider, HttpContextClaimsProvider>();
 
 ///// Adds Microsoft Identity platform (Azure AD B2C) support to protect this Api
 builder

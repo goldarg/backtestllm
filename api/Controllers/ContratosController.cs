@@ -17,5 +17,5 @@ public class ContratosController : Controller
     [HttpGet]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public async Task<IActionResult> GetContratos()
-        => Ok(await _contratoService.GetContratos(User));
+        => Ok(await _contratoService.GetContratos());
 }
