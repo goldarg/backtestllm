@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using api.Configuration;
@@ -37,9 +36,9 @@ namespace api.Services
             _crmService = crmService;
         }
 
-        public async Task CreateUser(UserDto userDto, ClaimsPrincipal User)
+        public async Task CreateUser(UserDto userDto)
         {
-            var (rolSelected, empresasSelected) = ValidarUsuario(userDto, User);
+            var (rolSelected, empresasSelected) = ValidarUsuario(userDto);
             var createdId = await CrearUsuarioCRM(userDto);
 
             _unitOfWork
@@ -63,12 +62,11 @@ namespace api.Services
         }
 
         public async Task DesactivarUsuario(
-            DesactivarConductorDto desactivarDto,
-            ClaimsPrincipal User
+            DesactivarConductorDto desactivarDto
         )
         {
             //Valido que el usuario del request puede editar al usuario target
-            var maxJerarquiaRequest = _userIdentityService.GetJerarquiaRolMayor(User);
+            var maxJerarquiaRequest = _userIdentityService.GetJerarquiaRolMayor();
             var usersRepo = _unitOfWork.GetRepository<User>().GetAll();
 
             var user = usersRepo
@@ -190,9 +188,9 @@ namespace api.Services
             _unitOfWork.SaveChanges();
         }
 
-        public List<ConductorEmpresaDto> GetConductores(ClaimsPrincipal User)
+        public List<ConductorEmpresaDto> GetConductores()
         {
-            var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario(User);
+            var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario();
 
             return
             [
@@ -214,11 +212,11 @@ namespace api.Services
             ];
         }
 
-        public async Task<List<ConductorDto>>? GetListaUsuarios(ClaimsPrincipal User)
+        public async Task<List<ConductorDto>>? GetListaUsuarios()
         {
-            var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario(User);
+            var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario();
             var topeJerarquia = _userIdentityService
-                .ListarRolesSuperiores(User)
+                .ListarRolesSuperiores()
                 .Max(x => x.jerarquia);
 
             //Obtengo los datos necesarios
@@ -337,9 +335,9 @@ namespace api.Services
                 .SingleOrDefault(x => x.idCRM == id.ToString());
         }
 
-        public async Task EditUser(ClaimsPrincipal User, string usuarioCrmId, UserDto userDto)
+        public async Task EditUser(string usuarioCrmId, UserDto userDto)
         {
-            var (rolSelected, empresasSelected) = ValidarUsuario(userDto, User, usuarioCrmId);
+            var (rolSelected, empresasSelected) = ValidarUsuario(userDto, usuarioCrmId);
             var userDb = _unitOfWork
                 .GetRepository<User>()
                 .GetAll()
@@ -347,7 +345,7 @@ namespace api.Services
             if (userDb == null)
                 throw new NotFoundException("Usuario no encontrado");
             // no puedo modificar a un usuario con jerarquia igual o mayor
-            var rolesInferiores = _userIdentityService.ListarRolesInferiores(User);
+            var rolesInferiores = _userIdentityService.ListarRolesInferiores();
             if (userDb.Roles.Any(ur => rolesInferiores.Any(ri => ur.Rol.jerarquia >= ri.jerarquia)))
                 throw new UnauthorizedAccessException(
                     "No puedes modificar a un usuario con jerarquía igual o mayor."
@@ -440,7 +438,6 @@ namespace api.Services
         /// <exception cref="BadRequestException"></exception>
         private (Rol rol, List<Empresa> empresas) ValidarUsuario(
             UserDto userDto,
-            ClaimsPrincipal User,
             string usuarioCrmId = ""
         )
         {
@@ -468,16 +465,14 @@ namespace api.Services
                     "Al menos una de las empresas seleccionadas no es válida"
                 );
             // el usuario actual que crea, debe tener control sobre ese rol
-            var rolesInferiores = _userIdentityService.ListarRolesInferiores(User);
+            var rolesInferiores = _userIdentityService.ListarRolesInferiores();
             if (!rolesInferiores.Any(x => x.id == rolSelected.id))
                 throw new BadRequestException("No tienes permisos para asignar ese rol");
             // si sos conductor solo podes tener una empresa asignada
             if (rolSelected.nombreRol == "CONDUCTOR" && empresasSelected.Count > 1)
                 throw new BadRequestException("Un conductor solo puede tener una empresa asignada");
             // el usuario actual que crea, debe tener control sobre esas empresas
-            var empresasDisponiblesSegunPermiso = _userIdentityService.ListarEmpresasDelUsuario(
-                User
-            );
+            var empresasDisponiblesSegunPermiso = _userIdentityService.ListarEmpresasDelUsuario();
             if (!empresasSelected.All(x => empresasDisponiblesSegunPermiso.Contains(x.idCRM)))
                 throw new BadRequestException("No tienes permisos para asignar esas empresas");
             // TODO sino sos conductor no podes tener un auto asignado

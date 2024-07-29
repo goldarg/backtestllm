@@ -27,12 +27,12 @@ public class UsersController : ControllerBase
     [Route("GetListaUsuarios")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN,CONDUCTOR")]
     public async Task<IActionResult> GetListaUsuarios() =>
-        Ok(await _userService.GetListaUsuarios(User));
+        Ok(await _userService.GetListaUsuarios());
 
     [HttpGet]
     [Route("GetConductores")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public IActionResult GetConductores() => Ok(_userService.GetConductores(User));
+    public IActionResult GetConductores() => Ok(_userService.GetConductores());
 
     [HttpGet("{id}")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
@@ -50,7 +50,7 @@ public class UsersController : ControllerBase
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public async Task<IActionResult> DesactivarUsuario(DesactivarConductorDto desactivarDto)
     {
-        await _userService.DesactivarUsuario(desactivarDto, User);
+        await _userService.DesactivarUsuario(desactivarDto);
 
         return Ok();
     }
@@ -62,7 +62,7 @@ public class UsersController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        await _userService.CreateUser(userDto, User);
+        await _userService.CreateUser(userDto);
 
         return Created();
     }
@@ -74,7 +74,7 @@ public class UsersController : ControllerBase
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-        await _userService.EditUser(User, usuarioCrmId, userDto);
+        await _userService.EditUser(usuarioCrmId, userDto);
         return Ok();
     }
 

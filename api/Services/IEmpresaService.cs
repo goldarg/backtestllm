@@ -5,7 +5,7 @@ namespace api.Services
 {
     public interface IEmpresaService
     {
-        List<EmpresaDto> GetAll(System.Security.Claims.ClaimsPrincipal User);
+        List<EmpresaDto> GetAll();
         Empresa? GetById(int id);
     }
 }

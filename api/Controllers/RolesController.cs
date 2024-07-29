@@ -18,7 +18,7 @@ public class RolesController : ControllerBase
     [HttpGet]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public IActionResult GetAll()
-        => Ok(_rolService.GetAll(User));
+        => Ok(_rolService.GetAll());
 
     [HttpGet("{id}")]
     // TODO ESTO NECESITA IMPLEMENTAR JERARQUIA DE ROLES

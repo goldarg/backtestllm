@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using api.DataAccess;
 using api.Models.Entities;
 
@@ -11,21 +7,23 @@ namespace api.Services
     public class UserIdentityService : IUserIdentityService
     {
         private readonly IRdaUnitOfWork _unitOfWork;
+        private readonly IClaimsProvider _claimsProvider;
 
-        public UserIdentityService(IRdaUnitOfWork unitOfWork)
+        public UserIdentityService(IClaimsProvider claimsProvider, IRdaUnitOfWork unitOfWork)
         {
+            _claimsProvider = claimsProvider;
             _unitOfWork = unitOfWork;
         }
 
         //Devuelve todos los nombreRol de los roles asignados al usuario
-        public string[] ListarRolesDelUsuario(ClaimsPrincipal user)
+        public string[] ListarRolesDelUsuario()
         {
-            var claimIdentity = user.Identity as ClaimsIdentity;
+            var claimIdentity = _claimsProvider.ClaimsPrincipal.Identity as ClaimsIdentity;
 
             if (claimIdentity == null)
                 return Array.Empty<string>();
 
-            var roles = user
+            var roles = _claimsProvider.ClaimsPrincipal
                 .Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
                 .Select(x => x.Value)
                 .ToArray();
@@ -34,39 +32,39 @@ namespace api.Services
         }
 
         //Devuelve todos los CrmId de las empresas que posee el usuario
-        public string[] ListarEmpresasDelUsuario(ClaimsPrincipal user)
+        public string[] ListarEmpresasDelUsuario()
         {
-            var claimIdentity = user.Identity as ClaimsIdentity;
+            var claimIdentity = _claimsProvider.ClaimsPrincipal.Identity as ClaimsIdentity;
 
             if (claimIdentity == null)
                 return Array.Empty<string>();
 
-            var roles = user.Claims.Where(x => x.Type == "empresas").Select(x => x.Value).ToArray();
+            var roles = _claimsProvider.ClaimsPrincipal.Claims.Where(x => x.Type == "empresas").Select(x => x.Value).ToArray();
 
             return roles;
         }
 
         //Devuelve si el usuario tiene o no el claim del nombreRol
-        public bool UsuarioPoseeRol(ClaimsPrincipal user, string rol)
+        public bool UsuarioPoseeRol(string rol)
         {
-            var claimIdentity = user.Identity as ClaimsIdentity;
+            var claimIdentity = _claimsProvider.ClaimsPrincipal.Identity as ClaimsIdentity;
             if (claimIdentity == null)
                 return false;
 
-            return user
+            return _claimsProvider.ClaimsPrincipal
                 .Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
                 .Select(x => x.Value)
                 .Any(x => x == rol);
         }
 
         //Devuelve si el usuario tiene o no el claim al CrmId de la empresa
-        public bool UsuarioPoseeEmpresa(ClaimsPrincipal user, string empresa)
+        public bool UsuarioPoseeEmpresa(string empresa)
         {
-            var claimIdentity = user.Identity as ClaimsIdentity;
+            var claimIdentity = _claimsProvider.ClaimsPrincipal.Identity as ClaimsIdentity;
             if (claimIdentity == null)
                 return false;
 
-            return user
+            return _claimsProvider.ClaimsPrincipal
                 .Claims.Where(x => x.Type == "empresas")
                 .Select(x => x.Value)
                 .Any(x => x == empresa);
@@ -77,9 +75,9 @@ namespace api.Services
         /// </summary>
         /// <param name="user">El usuario cuyas jerarquías de roles se evaluarán.</param>
         /// <returns>La jerarquía del rol más alto del usuario. Retorna 0 si el usuario no tiene roles.</returns>
-        public int GetJerarquiaRolMayor(ClaimsPrincipal user)
+        public int GetJerarquiaRolMayor()
         {
-            var rolesUsuario = ListarRolesDelUsuario(user);
+            var rolesUsuario = ListarRolesDelUsuario();
             if (rolesUsuario == null || !rolesUsuario.Any())
                 return 0;
 
@@ -95,9 +93,9 @@ namespace api.Services
         }
 
         //Lista los roles superiores, INCLUYENDO al mayor rol, del usario
-        public Rol[] ListarRolesSuperiores(ClaimsPrincipal user)
+        public Rol[] ListarRolesSuperiores()
         {
-            var rolConMayorJerarquia = GetJerarquiaRolMayor(user);
+            var rolConMayorJerarquia = GetJerarquiaRolMayor();
 
             // Obtener todos los roles inferiores a rolConMayorJerarquia.jerarquia
             var rolesSuperiores = _unitOfWork
@@ -109,9 +107,9 @@ namespace api.Services
             return rolesSuperiores;
         }
 
-        public Rol[] ListarRolesInferiores(ClaimsPrincipal user)
+        public Rol[] ListarRolesInferiores()
         {
-            var rolConMayorJerarquia = GetJerarquiaRolMayor(user);
+            var rolConMayorJerarquia = GetJerarquiaRolMayor();
 
             if (rolConMayorJerarquia == 0)
                 return Array.Empty<Rol>();

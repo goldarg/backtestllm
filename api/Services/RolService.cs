@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using api.DataAccess;
 using api.Models.DTO.Rol;
 using api.Models.Entities;
@@ -16,9 +15,9 @@ namespace api.Services
             _unitOfWork = unitOfWork;
         }
 
-        public IEnumerable<RolDto>? GetAll(ClaimsPrincipal User)
+        public IEnumerable<RolDto>? GetAll()
         {
-            var roles = _userIdentityService.ListarRolesInferiores(User);
+            var roles = _userIdentityService.ListarRolesInferiores();
             return roles.Select(x => new RolDto { Id = x.id, NombreRol = x.nombreRol });
         }
 
