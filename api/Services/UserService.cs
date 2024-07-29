@@ -222,7 +222,9 @@ namespace api.Services
                 .Max(x => x.jerarquia);
 
             //Obtengo los datos necesarios
-            var uri = new StringBuilder("crm/v2/Contacts?fields=id,Full_Name,Cargo,Phone");
+            var uri = new StringBuilder(
+                "crm/v2/Contacts?fields=id,First_Name,Last_Name,Cargo,Phone,Email"
+            );
 
             var json = await _crmService.Get(uri.ToString());
             var conductoresCrm = JsonSerializer.Deserialize<List<ConductorDto>>(json);

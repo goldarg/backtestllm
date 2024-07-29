@@ -12,7 +12,9 @@ namespace api.Models.DTO.Conductor
     public class ConductorDto
     {
         public string id { get; set; }
-        public string? Full_Name { get; set; }
+        public string? Last_Name { get; set; }
+        public string? First_Name { get; set; }
+        public string? Email { get; set; }
 
         //TODO scoring (falta conexion a GeoTab por parte de RDA)
         public IList<EmpresaDto> Empresas { get; set; }
