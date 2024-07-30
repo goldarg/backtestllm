@@ -18,8 +18,12 @@ namespace api.Services
         private readonly CRMService _crmService;
         private readonly IUserIdentityService _identityService;
 
-        public VehiculoService(IHttpClientFactory httpClientFactory, IRdaUnitOfWork unitOfWork,
-            CRMService crmService, IUserIdentityService identityService)
+        public VehiculoService(
+            IHttpClientFactory httpClientFactory,
+            IRdaUnitOfWork unitOfWork,
+            CRMService crmService,
+            IUserIdentityService identityService
+        )
         {
             _httpClientFactory = httpClientFactory;
             _unitOfWork = unitOfWork;
@@ -50,7 +54,9 @@ namespace api.Services
             else if (asignarVehiculoDto.tipoContrato == "Alquiler Corporativo")
                 asignarVehiculoDto.tipoContrato = "Alquileres";
             else
-                throw new BadRequestException("No se pudo determinar el tipo de contrato del vehículo");
+                throw new BadRequestException(
+                    "No se pudo determinar el tipo de contrato del vehículo"
+                );
 
             var uri = new StringBuilder($"crm/v2/{asignarVehiculoDto.tipoContrato}/upsert");
 
@@ -59,12 +65,12 @@ namespace api.Services
             {
                 data = new[]
                 {
-                new
-                {
-                    id = asignarVehiculoDto.idContratoInterno,
-                    Conductor = new { id = asignarVehiculoDto.usuarioId }
+                    new
+                    {
+                        id = asignarVehiculoDto.idContratoInterno,
+                        Conductor = new { id = asignarVehiculoDto.usuarioId }
+                    }
                 }
-            }
             };
 
             string jsonString = JsonSerializer.Serialize(
@@ -112,11 +118,13 @@ namespace api.Services
                     "crm/v2/Alquileres?fields=",
                     [
                         "Dominio_Alquiler",
-                    "Conductor",
-                    "Contrato",
-                    "Estado",
-                    "id",
-                    "Fecha_de_Devolucion"
+                        "Conductor",
+                        "Contrato",
+                        "Estado",
+                        "id",
+                        "Fecha_de_Devolucion",
+                        "Centro_de_costos",
+                        "Sector"
                     ],
                     contratos,
                     conductores_Vehiculo
@@ -124,7 +132,16 @@ namespace api.Services
                 // Servicios
                 ProcessRelatedFields(
                     "crm/v2/Servicios_RDA?fields=",
-                    ["Dominio", "Conductor", "Contrato", "Estado", "id", "Fin_de_servicio"],
+                    [
+                        "Dominio",
+                        "Conductor",
+                        "Contrato",
+                        "Estado",
+                        "id",
+                        "Fin_de_servicio",
+                        "Centro_de_costos",
+                        "Sector"
+                    ],
                     contratos,
                     conductores_Vehiculo
                 ),
@@ -133,11 +150,13 @@ namespace api.Services
                     "crm/v2/Renting?fields=",
                     [
                         "Dominio",
-                    "Conductor",
-                    "Nombre_del_contrato",
-                    "Estado",
-                    "id",
-                    "Fecha_fin_de_renting"
+                        "Conductor",
+                        "Nombre_del_contrato",
+                        "Estado",
+                        "id",
+                        "Fecha_fin_de_renting",
+                        "Centro_de_costos",
+                        "Sector"
                     ],
                     contratos,
                     conductores_Vehiculo
@@ -158,6 +177,8 @@ namespace api.Services
                         v.estadoContratoInterno = c.estadoContratoInterno;
                         v.idContratoInterno = c.contratoIdInterno;
                         v.fechaFinContratoInterno = c.FechaFinContratoInterno;
+                        v.Centro_de_costos = c.Centro_de_costos;
+                        v.Sector = c.Sector;
                         return v;
                     }
                 )
@@ -183,21 +204,44 @@ namespace api.Services
             return vehiculos.Where(x => empresasDisponibles.Contains(x.Cuenta.id)).ToList();
         }
 
-        public async Task<List<OperacionesVehiculoDto>> HistorialOperaciones(string dominio, string tipoContrato)
+        public async Task<List<OperacionesVehiculoDto>> HistorialOperaciones(
+            string dominio,
+            string tipoContrato
+        )
         {
             var empresasDisponibles = _identityService.ListarEmpresasDelUsuario();
-            
+
             var uris = new Dictionary<string, string>
             {
-                { "Alquiler Corporativo", $"crm/v2/Alquileres/search?criteria=(Dominio_Alquiler.name:equals:" + dominio + ")&fields=Dominio_Alquiler,Contrato" },
-                { "Fleet Management", $"crm/v2/Servicios_RDA/search?criteria=(Dominio.name:equals:" + dominio + ")&fields=Dominio,Contrato" },
-                { "Renting", $"crm/v2/Renting/search?criteria=(Dominio.name:equals:" + dominio + ")&fields=Dominio,Nombre_del_contrato" }
+                {
+                    "Alquiler Corporativo",
+                    $"crm/v2/Alquileres/search?criteria=(Dominio_Alquiler.name:equals:"
+                        + dominio
+                        + ")&fields=Dominio_Alquiler,Contrato"
+                },
+                {
+                    "Fleet Management",
+                    $"crm/v2/Servicios_RDA/search?criteria=(Dominio.name:equals:"
+                        + dominio
+                        + ")&fields=Dominio,Contrato"
+                },
+                {
+                    "Renting",
+                    $"crm/v2/Renting/search?criteria=(Dominio.name:equals:"
+                        + dominio
+                        + ")&fields=Dominio,Nombre_del_contrato"
+                }
             };
 
             var json = await _crmService.Get(uris[tipoContrato]);
-            var contratoId = JArray.Parse(json)[0][tipoContrato == "Renting" ? "Nombre_del_contrato" : "Contrato"].ToObject<CRMRelatedObject>().id;
+            var contratoId = JArray
+                .Parse(json)[0][tipoContrato == "Renting" ? "Nombre_del_contrato" : "Contrato"]
+                .ToObject<CRMRelatedObject>()
+                .id;
 
-            var uri = new StringBuilder("crm/v2/Contratos/search?criteria=(Id:equals:" + contratoId + ")&fields=Cuenta");
+            var uri = new StringBuilder(
+                "crm/v2/Contratos/search?criteria=(Id:equals:" + contratoId + ")&fields=Cuenta"
+            );
 
             json = await _crmService.Get(uri.ToString());
 
@@ -206,26 +250,34 @@ namespace api.Services
             if (!empresasDisponibles.Contains(contrato.Cuenta.id))
                 return [];
 
-            uri = new StringBuilder("crm/v2/Purchase_Orders/search?criteria=(Vehiculo.name:equals:" + dominio + ")" +
-                "&fields=id,Clasificaciones,Vehiculo,Product_Details,Vendor_Name,Turno,Status,PO_Number");
+            uri = new StringBuilder(
+                "crm/v2/Purchase_Orders/search?criteria=(Vehiculo.name:equals:"
+                    + dominio
+                    + ")"
+                    + "&fields=id,Clasificaciones,Vehiculo,Product_Details,Vendor_Name,Turno,Status,PO_Number"
+            );
 
             json = await _crmService.Get(uri.ToString());
             var operaciones = JsonSerializer.Deserialize<List<OperacionesResponseDto>>(json);
 
-            var response = operaciones.Select(o => new OperacionesVehiculoDto
-            {
-                Id = o.Id,
-                TipoOperacion = o.TipoOperacion,
-                Detalle = o.Detalle.Any() ? o.Detalle.Select(d => d.Product.Name).ToList() : null,
-                Taller = o.Taller?.name,
-                FechaTurno = o.FechaTurno,
-                Estado = o.Estado,
-                OT = o.OT
-            }).ToList();
+            var response = operaciones
+                .Select(o => new OperacionesVehiculoDto
+                {
+                    Id = o.Id,
+                    TipoOperacion = o.TipoOperacion,
+                    Detalle = o.Detalle.Any()
+                        ? o.Detalle.Select(d => d.Product.Name).ToList()
+                        : null,
+                    Taller = o.Taller?.name,
+                    FechaTurno = o.FechaTurno,
+                    Estado = o.Estado,
+                    OT = o.OT
+                })
+                .ToList();
 
             return response;
         }
-        
+
         private async Task ProcessRelatedFields(
             string uri,
             string[] fields,
@@ -253,6 +305,8 @@ namespace api.Services
                 var estado = item[fields[3]].ToObject<string>();
                 var contratoIdInterno = item[fields[4]].ToObject<string>();
                 var fechaFinContratoInterno = item[fields[5]].ToObject<DateTime?>();
+                var centroDeCostos = item[fields[6]].ToObject<string?>();
+                var sector = item[fields[7]].ToObject<string?>();
 
                 conductores_Vehiculo.Add(
                     new ConductorCuentaVehiculoDto
@@ -262,7 +316,9 @@ namespace api.Services
                         Contrato = contrato,
                         estadoContratoInterno = estado,
                         contratoIdInterno = contratoIdInterno,
-                        FechaFinContratoInterno = fechaFinContratoInterno
+                        FechaFinContratoInterno = fechaFinContratoInterno,
+                        Centro_de_costos = centroDeCostos,
+                        Sector = sector
                     }
                 );
             }

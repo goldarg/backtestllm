@@ -9,5 +9,11 @@ namespace api.Models.DTO.Vehiculo
         public string contratoIdInterno { get; set; }
         public string? Plazo_Propuesta { get; set; }
         public DateTime? FechaFinContratoInterno { get; set; }
+
+        // traido desde contratos internos
+        public string? Centro_de_costos { get; set; }
+
+        // traido desde contratos internos
+        public string? Sector { get; set; }
     }
 }
