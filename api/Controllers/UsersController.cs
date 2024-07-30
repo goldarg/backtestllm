@@ -1,4 +1,3 @@
-using api.Configuration;
 using api.Models.DTO.Conductor;
 using api.Models.DTO.User;
 using api.Services;
@@ -73,12 +72,10 @@ public class UsersController : ControllerBase
         return Ok();
     }
 
-    [HttpPost]
-    [Route("editSelfConductor")]
-    [Authorize(Roles = "CONDUCTOR")]
-    public async Task<IActionResult> EditSelfConductor(
-        [FromBody] UpdateSelfConductorDto conductorDto
-    )
+    [HttpPatch]
+    [Route("editSelf")]
+    [Authorize]
+    public async Task<IActionResult> EditSelf([FromBody] UpdateSelfUserDto userDto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -87,7 +84,7 @@ public class UsersController : ControllerBase
         if (userName == null)
             return BadRequest("No se pudo obtener el id del usuario actual");
 
-        await _userService.EditSelfConductor(conductorDto, userName);
+        await _userService.EditSelf(userDto, userName);
 
         return Ok();
     }

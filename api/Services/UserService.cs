@@ -360,7 +360,7 @@ namespace api.Services
             _unitOfWork.SaveChanges();
         }
 
-        public async Task EditSelfConductor(UpdateSelfConductorDto conductorDto, string userName)
+        public async Task EditSelf(UpdateSelfUserDto userDto, string userName)
         {
             var user = _unitOfWork
                 .GetRepository<User>()
@@ -371,7 +371,7 @@ namespace api.Services
                 throw new NotFoundException("Usuario no encontrado");
 
             // Actualizar el teléfono en el CRM
-            await ActualizarTelefonoCRM(user.idCRM, conductorDto.Telefono);
+            await ActualizarTelefonoCRM(user.idCRM, userDto.Telefono);
         }
 
         // Usuarios Empresas
