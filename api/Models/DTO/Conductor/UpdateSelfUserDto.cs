@@ -2,7 +2,7 @@
 
 namespace api.Models.DTO.Conductor;
 
-public class UpdateSelfConductorDto
+public class UpdateSelfUserDto
 {
     [Phone(ErrorMessage = "El número de teléfono no es válido")]
     public required string Telefono { get; set; }
