@@ -36,6 +36,13 @@ namespace api.Models.DTO
         public string? Tipo_cobertura { get; set; }
         public string? plazoContrato { get; set; }
         public DateTime? fechaFinContratoInterno { get; set; }
+
+        // traido desde contratos internos
+        public string? Centro_de_costos { get; set; }
+
+        // traido desde contratos internos
+        public string? Sector { get; set; }
+
         //Poliza
         //Cobertura
     }
