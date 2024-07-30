@@ -23,8 +23,8 @@ namespace api.Services
             if (claimIdentity == null)
                 return Array.Empty<string>();
 
-            var roles = _claimsProvider.ClaimsPrincipal
-                .Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
+            var roles = _claimsProvider
+                .ClaimsPrincipal.Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
                 .Select(x => x.Value)
                 .ToArray();
 
@@ -39,7 +39,10 @@ namespace api.Services
             if (claimIdentity == null)
                 return Array.Empty<string>();
 
-            var roles = _claimsProvider.ClaimsPrincipal.Claims.Where(x => x.Type == "empresas").Select(x => x.Value).ToArray();
+            var roles = _claimsProvider
+                .ClaimsPrincipal.Claims.Where(x => x.Type == "empresas")
+                .Select(x => x.Value)
+                .ToArray();
 
             return roles;
         }
@@ -51,8 +54,8 @@ namespace api.Services
             if (claimIdentity == null)
                 return false;
 
-            return _claimsProvider.ClaimsPrincipal
-                .Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
+            return _claimsProvider
+                .ClaimsPrincipal.Claims.Where(x => x.Type == claimIdentity.RoleClaimType)
                 .Select(x => x.Value)
                 .Any(x => x == rol);
         }
@@ -64,8 +67,8 @@ namespace api.Services
             if (claimIdentity == null)
                 return false;
 
-            return _claimsProvider.ClaimsPrincipal
-                .Claims.Where(x => x.Type == "empresas")
+            return _claimsProvider
+                .ClaimsPrincipal.Claims.Where(x => x.Type == "empresas")
                 .Select(x => x.Value)
                 .Any(x => x == empresa);
         }
@@ -122,6 +125,18 @@ namespace api.Services
                 .ToArray();
 
             return rolesInferiores;
+        }
+
+        public bool EsInferiorEnRoles(User user)
+        {
+            var rolesInferiores = ListarRolesInferiores();
+            if (user.Roles == null)
+                return true;
+            // si para cada rol del usuario,hay un rolInferior que sea mayor o igual a ese rol, entonces el usuario es inferior
+            bool esInferior = user.Roles.All(ur =>
+                rolesInferiores.Any(ri => ur.Rol?.jerarquia <= ri.jerarquia)
+            );
+            return esInferior;
         }
     }
 }

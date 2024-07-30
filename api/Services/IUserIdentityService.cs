@@ -17,5 +17,7 @@ namespace api.Services
         Rol[] ListarRolesInferiores();
         Rol[] ListarRolesSuperiores();
         int GetJerarquiaRolMayor();
+
+        bool EsInferiorEnRoles(User user);
     }
 }
