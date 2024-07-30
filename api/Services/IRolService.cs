@@ -5,7 +5,8 @@ namespace api.Services
 {
     public interface IRolService
     {
-        IEnumerable<RolDto>? GetAll();
+        IEnumerable<RolDto>? GetInferiores();
         Rol? GetById(int id);
+        IEnumerable<RolDto>? GetPropios();
     }
 }

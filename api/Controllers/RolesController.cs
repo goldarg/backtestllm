@@ -15,10 +15,19 @@ public class RolesController : ControllerBase
         _rolService = rolService;
     }
 
-    [HttpGet]
+    [HttpGet("inferiores")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public IActionResult GetAll()
-        => Ok(_rolService.GetAll());
+    public IActionResult GetInferiores()
+    {
+        return Ok(_rolService.GetInferiores());
+    }
+
+    [HttpGet("propios")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN,CONDUCTOR")]
+    public IActionResult GetPropios()
+    {
+        return Ok(_rolService.GetPropios());
+    }
 
     [HttpGet("{id}")]
     // TODO ESTO NECESITA IMPLEMENTAR JERARQUIA DE ROLES
