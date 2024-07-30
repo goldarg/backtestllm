@@ -334,29 +334,29 @@ namespace api.Services
         public async Task EditUser(string usuarioCrmId, UserDto userDto)
         {
             var (rolSelected, empresasSelected) = ValidarUsuario(userDto, usuarioCrmId);
-            var userDb = _unitOfWork
+            var usuarioEditarDb = _unitOfWork
                 .GetRepository<User>()
                 .GetAll()
                 .SingleOrDefault(x => x.idCRM == usuarioCrmId);
-            if (userDb == null)
+            if (usuarioEditarDb == null)
                 throw new NotFoundException("Usuario no encontrado");
             // no puedo modificar a un usuario con jerarquia igual o mayor
-            var rolesInferiores = _userIdentityService.ListarRolesInferiores();
-            if (userDb.Roles.Any(ur => rolesInferiores.Any(ri => ur.Rol.jerarquia >= ri.jerarquia)))
+            var esInferior = _userIdentityService.EsInferiorEnRoles(usuarioEditarDb);
+            if (!esInferior)
                 throw new UnauthorizedAccessException(
                     "No puedes modificar a un usuario con jerarquía igual o mayor."
                 );
 
             await ActualizarUsuarioCRM(usuarioCrmId, userDto);
 
-            userDb.nombre = userDto.Nombre;
-            userDb.apellido = userDto.Apellido;
-            userDb.userName = userDto.Email;
-            userDb.Roles = new List<UsuariosRoles> { new() { rolId = rolSelected.id } };
-            userDb.EmpresasAsignaciones = empresasSelected
+            usuarioEditarDb.nombre = userDto.Nombre;
+            usuarioEditarDb.apellido = userDto.Apellido;
+            usuarioEditarDb.userName = userDto.Email;
+            usuarioEditarDb.Roles = new List<UsuariosRoles> { new() { rolId = rolSelected.id } };
+            usuarioEditarDb.EmpresasAsignaciones = empresasSelected
                 .Select(empresa => new UsuariosEmpresas { empresaId = empresa.id })
                 .ToList();
-            _unitOfWork.GetRepository<User>().Update(userDb);
+            _unitOfWork.GetRepository<User>().Update(usuarioEditarDb);
             _unitOfWork.SaveChanges();
         }
 
