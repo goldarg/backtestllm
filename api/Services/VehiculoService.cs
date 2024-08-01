@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using api.Connected_Services;
@@ -110,7 +111,7 @@ namespace api.Services
             json = await _crmService.Get(uri.ToString());
             var contratos = JsonSerializer.Deserialize<List<ContratosIdDto>>(json);
 
-            var conductores_Vehiculo = new List<ConductorCuentaVehiculoDto>();
+            var conductores_Vehiculo_Bag = new ConcurrentBag<ConductorCuentaVehiculoDto>();
 
             await Task.WhenAll(
                 // Alquileres
@@ -127,7 +128,7 @@ namespace api.Services
                         "Sector"
                     ],
                     contratos,
-                    conductores_Vehiculo
+                    conductores_Vehiculo_Bag
                 ),
                 // Servicios
                 ProcessRelatedFields(
@@ -143,7 +144,7 @@ namespace api.Services
                         "Sector"
                     ],
                     contratos,
-                    conductores_Vehiculo
+                    conductores_Vehiculo_Bag
                 ),
                 // Renting
                 ProcessRelatedFields(
@@ -159,9 +160,11 @@ namespace api.Services
                         "Sector"
                     ],
                     contratos,
-                    conductores_Vehiculo
+                    conductores_Vehiculo_Bag
                 )
             );
+
+            var conductores_Vehiculo = conductores_Vehiculo_Bag.ToList();
 
             //Joineo con los 3 modulos para traer el conductor y su respectivo contrato
             vehiculos
@@ -282,7 +285,7 @@ namespace api.Services
             string uri,
             string[] fields,
             List<ContratosIdDto> contratos,
-            List<ConductorCuentaVehiculoDto> conductores_Vehiculo
+            ConcurrentBag<ConductorCuentaVehiculoDto> conductores_Vehiculo
         )
         {
             var dataUri = new StringBuilder(uri);

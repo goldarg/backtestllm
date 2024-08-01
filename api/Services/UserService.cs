@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using api.Configuration;
@@ -271,7 +272,7 @@ namespace api.Services
                 )
                 .ToList();
 
-            var vehiculosConductores = new List<ConductorVehiculoDto>();
+            var vehiculosConductoresBag = new ConcurrentBag<ConductorVehiculoDto>();
             var conductoresCrmIds = conductoresPermisosMatch.Select(x => x.id).ToList();
 
             await Task.WhenAll(
@@ -280,7 +281,7 @@ namespace api.Services
                     "crm/v2/Alquileres?fields=",
                     ["Conductor", "Dominio_Alquiler"],
                     conductoresCrmIds,
-                    vehiculosConductores,
+                    vehiculosConductoresBag,
                     "Alquileres"
                 ),
                 // Servicios
@@ -288,7 +289,7 @@ namespace api.Services
                     "crm/v2/Servicios_RDA?fields=",
                     ["Conductor", "Dominio"],
                     conductoresCrmIds,
-                    vehiculosConductores,
+                    vehiculosConductoresBag,
                     "Servicios_RDA"
                 ),
                 // Renting
@@ -296,10 +297,12 @@ namespace api.Services
                     "crm/v2/Renting?fields=",
                     ["Conductor", "Dominio"],
                     conductoresCrmIds,
-                    vehiculosConductores,
+                    vehiculosConductoresBag,
                     "Renting"
                 )
             );
+
+            var vehiculosConductores = vehiculosConductoresBag.ToList();
 
             return conductoresPermisosMatch
                 .GroupJoin(
@@ -398,7 +401,7 @@ namespace api.Services
             string uri,
             string[] fields,
             List<string> conductoresIds,
-            List<ConductorVehiculoDto> vehiculosConductores,
+            ConcurrentBag<ConductorVehiculoDto> vehiculosConductores,
             string tipoContrato
         )
         {
