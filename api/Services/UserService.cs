@@ -507,7 +507,8 @@ namespace api.Services
                         // puesto
                         Cargo = userDto.Puesto,
                         Phone = userDto.Telefono,
-                        Comentario = "cargado desde plataforma"
+                        Comentario = "cargado desde plataforma",
+                        Estado_Mirai = "Activo"
                     }
                 }
             };
