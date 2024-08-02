@@ -19,5 +19,6 @@ namespace api.Services
         int GetJerarquiaRolMayor();
 
         bool EsInferiorEnRoles(User user);
+        User GetUsuarioDb();
     }
 }

@@ -18,35 +18,49 @@ namespace api.Services
         private readonly IRdaUnitOfWork _unitOfWork;
         private readonly CRMService _crmService;
         private readonly IUserIdentityService _identityService;
+        private readonly IActividadUsuarioService _actividadUsuarioService;
 
         public VehiculoService(
             IHttpClientFactory httpClientFactory,
             IRdaUnitOfWork unitOfWork,
             CRMService crmService,
-            IUserIdentityService identityService
+            IUserIdentityService identityService,
+            IActividadUsuarioService actividadUsuarioService
         )
         {
             _httpClientFactory = httpClientFactory;
             _unitOfWork = unitOfWork;
             _crmService = crmService;
             _identityService = identityService;
+            _actividadUsuarioService = actividadUsuarioService;
         }
 
         public async Task<string?> AsignarVehiculo(AsignarVehiculoDto asignarVehiculoDto)
         {
+            var userRepository = _unitOfWork.GetRepository<User>();
+
             var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
             ValidateAsignarVehiculo(asignarVehiculoDto, httpClient);
 
             if (asignarVehiculoDto.usuarioId == null)
             {
-                asignarVehiculoDto.usuarioId = _unitOfWork
-                    .GetRepository<User>()
+                asignarVehiculoDto.usuarioId = userRepository
                     .GetAll()
                     .Where(x => x.nombre == "Sin" && x.apellido == "Asignar")
                     .Single()
                     .idCRM;
             }
+
+            //Busco el conductor que ahora voy a sacar, para agregarle el log mas adelante
+            var uri = new StringBuilder(
+                $"crm/v2/{asignarVehiculoDto.tipoContrato}/{asignarVehiculoDto.idContratoInterno}?fields=Conductor"
+            );
+            var json = await _crmService.Get(uri.ToString());
+            var conductorViejoCrm = JsonSerializer.Deserialize<List<BuscarConductorDto>>(json);
+
+            var conductorViejoId =
+                conductorViejoCrm.Count() > 0 ? conductorViejoCrm.First().Conductor.id : null;
 
             //Busco y actualizo según el tipo de contrato
             string targetModule;
@@ -61,7 +75,7 @@ namespace api.Services
                     "No se pudo determinar el tipo de contrato del vehículo"
                 );
 
-            var uri = new StringBuilder($"crm/v2/{asignarVehiculoDto.tipoContrato}/upsert");
+            uri = new StringBuilder($"crm/v2/{asignarVehiculoDto.tipoContrato}/upsert");
 
             //Armo el objeto para enviar al CRM, y devuelvo la respuesta
             var jsonObject = new
@@ -82,6 +96,21 @@ namespace api.Services
             );
             HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
             var response = await httpClient.PostAsync(uri.ToString(), content);
+
+            _actividadUsuarioService.CrearActividadCrm(
+                asignarVehiculoDto.usuarioId,
+                "Asignación de vehículo " + asignarVehiculoDto.dominio
+            );
+
+            //Puede no tener conductor anterior. Si lo tiene, le agrego el log
+            if (conductorViejoId != null)
+            {
+                _actividadUsuarioService.CrearActividadCrm(
+                    conductorViejoId,
+                    "Desasignación del vehículo" + asignarVehiculoDto.dominio
+                );
+            }
+
             return await response.Content.ReadAsStringAsync();
         }
 

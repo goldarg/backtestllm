@@ -11,5 +11,6 @@ namespace api.Models.DTO.Vehiculo
         public string tipoContrato { get; set; }
         public string? idContratoInterno { get; set; }
         public string? vehiculoId { get; set; }
+        public string? dominio { get; set; }
     }
 }
