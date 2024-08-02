@@ -36,6 +36,8 @@ namespace api.Services
         {
             var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
+            ValidateAsignarVehiculo(asignarVehiculoDto, httpClient);
+
             if (asignarVehiculoDto.usuarioId == null)
             {
                 asignarVehiculoDto.usuarioId = _unitOfWork
@@ -81,6 +83,35 @@ namespace api.Services
             HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
             var response = await httpClient.PostAsync(uri.ToString(), content);
             return await response.Content.ReadAsStringAsync();
+        }
+
+        private async void ValidateAsignarVehiculo(
+            AsignarVehiculoDto asignarVehiculoDto,
+            HttpClient httpClient
+        )
+        {
+            var usuarioDb = _unitOfWork
+                .GetRepository<User>()
+                .GetAll()
+                .Where(x => x.idCRM == asignarVehiculoDto.usuarioId)
+                .SingleOrDefault();
+
+            if (usuarioDb.estado != "Activo")
+                throw new BadRequestException(
+                    "El usuario debe tener estado 'Activo' para asignarle un vehículo"
+                );
+
+            var uri = new StringBuilder(
+                $"crm/v2/vehiculos/{asignarVehiculoDto.vehiculoId}?fields=Estado"
+            );
+            var json = await _crmService.Get(uri.ToString());
+            var vehiculoCrm = JsonSerializer.Deserialize<List<VehiculoEstadoDto>>(json);
+
+            if (vehiculoCrm.Count() != 1)
+                throw new BadRequestException("Error al buscar el vehículo a asignar");
+
+            if (vehiculoCrm.First().Estado != "Activo")
+                throw new BadRequestException("El vehículo debe estar en estado 'Activo'");
         }
 
         public async Task<List<VehiculoDto>?> GetVehiculos()

@@ -19,16 +19,18 @@ public class VehiculosController : ControllerBase
     [HttpPost]
     [Route("AsignarVehiculo")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public async Task<IActionResult> AsignarVehiculo([FromBody] AsignarVehiculoDto asignarVehiculoDto)
-        => Ok(await _vehiculoService.AsignarVehiculo(asignarVehiculoDto));
+    public async Task<IActionResult> AsignarVehiculo(
+        [FromBody] AsignarVehiculoDto asignarVehiculoDto
+    ) => Ok(await _vehiculoService.AsignarVehiculo(asignarVehiculoDto));
 
     [HttpGet]
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
-    public async Task<IActionResult> GetVehiculos()
-        => Ok(await _vehiculoService.GetVehiculos());
+    public async Task<IActionResult> GetVehiculos() => Ok(await _vehiculoService.GetVehiculos());
 
     [HttpGet("HistorialOperaciones")]
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
-    public async Task<IActionResult> GetHistorialOperaciones([FromQuery] string dominio, [FromQuery] string tipoContrato)
-        => Ok(await _vehiculoService.HistorialOperaciones(dominio, tipoContrato));
+    public async Task<IActionResult> GetHistorialOperaciones(
+        [FromQuery] string dominio,
+        [FromQuery] string tipoContrato
+    ) => Ok(await _vehiculoService.HistorialOperaciones(dominio, tipoContrato));
 }
