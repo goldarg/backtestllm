@@ -4,6 +4,6 @@ namespace api.Services
 {
     public interface IContratoService
     {
-        Task<List<ContratoResponse>>? GetContratos();
+        Task<ContratosResponse?> GetContratos();
     }
 }
