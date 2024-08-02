@@ -51,6 +51,7 @@ builder.Services.AddScoped<IContratoService, ContratoService>();
 builder.Services.AddScoped<IRolService, RolService>();
 builder.Services.AddScoped<IVehiculoService, VehiculoService>();
 builder.Services.AddScoped<IClaimsProvider, HttpContextClaimsProvider>();
+builder.Services.AddScoped<IActividadUsuarioService, ActividadUsuarioService>();
 
 ///// Adds Microsoft Identity platform (Azure AD B2C) support to protect this Api
 builder
