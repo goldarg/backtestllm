@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using api.DataAccess;
+using api.Exceptions;
 using api.Models.Entities;
 
 namespace api.Services
@@ -13,6 +14,25 @@ namespace api.Services
         {
             _claimsProvider = claimsProvider;
             _unitOfWork = unitOfWork;
+        }
+
+        public User GetUsuarioDb()
+        {
+            var claimIdentity = _claimsProvider.ClaimsPrincipal.Identity as ClaimsIdentity;
+
+            if (claimIdentity == null)
+                throw new BadRequestException("Ocurrió un error al validar al usuario");
+
+            var user = _unitOfWork
+                .GetRepository<User>()
+                .GetAll()
+                .Where(x => x.userName == claimIdentity.Name)
+                .SingleOrDefault();
+
+            if (user == null)
+                throw new BadRequestException("Ocurrió un error al validar al usuario");
+
+            return user;
         }
 
         //Devuelve todos los nombreRol de los roles asignados al usuario

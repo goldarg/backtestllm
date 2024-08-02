@@ -23,18 +23,21 @@ namespace api.Services
         private readonly IUserIdentityService _userIdentityService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly CRMService _crmService;
+        private readonly IActividadUsuarioService _actividadUsuarioService;
 
         public UserService(
             IRdaUnitOfWork unitOfWork,
             IUserIdentityService userIdentityService,
             IHttpClientFactory httpClientFactory,
-            CRMService crmService
+            CRMService crmService,
+            IActividadUsuarioService actividadUsuarioService
         )
         {
             _unitOfWork = unitOfWork;
             _userIdentityService = userIdentityService;
             _httpClientFactory = httpClientFactory;
             _crmService = crmService;
+            _actividadUsuarioService = actividadUsuarioService;
         }
 
         public async Task CreateUser(UserDto userDto)
@@ -60,6 +63,8 @@ namespace api.Services
                     }
                 );
             _unitOfWork.SaveChanges();
+
+            _actividadUsuarioService.CrearActividadCrm(createdId, "Alta de nuevo usuario");
         }
 
         public async Task DesactivarUsuario(DesactivarConductorDto desactivarDto)
@@ -185,6 +190,8 @@ namespace api.Services
             user.estado = EstadosUsuario.inactivo;
             _unitOfWork.GetRepository<User>().Update(user);
             _unitOfWork.SaveChanges();
+
+            _actividadUsuarioService.CrearActividadDb(user.id, "Desactivación del usuario");
         }
 
         public List<ConductorEmpresaDto> GetConductores()
@@ -361,6 +368,11 @@ namespace api.Services
                 .ToList();
             _unitOfWork.GetRepository<User>().Update(usuarioEditarDb);
             _unitOfWork.SaveChanges();
+
+            _actividadUsuarioService.CrearActividadDb(
+                usuarioEditarDb.id,
+                "Edición de datos del usuario (terceros)"
+            );
         }
 
         public async Task EditSelf(UpdateSelfUserDto userDto, string userName)
@@ -375,6 +387,11 @@ namespace api.Services
 
             // Actualizar el teléfono en el CRM
             await ActualizarTelefonoCRM(user.idCRM, userDto.Telefono);
+
+            _actividadUsuarioService.CrearActividadDb(
+                user.id,
+                "Edición de datos del usuario (propios)"
+            );
         }
 
         // Usuarios Empresas
