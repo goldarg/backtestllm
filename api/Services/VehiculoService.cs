@@ -94,7 +94,10 @@ namespace api.Services
                 .GetRepository<User>()
                 .GetAll()
                 .Where(x => x.idCRM == asignarVehiculoDto.usuarioId)
-                .SingleOrDefault();
+                .FirstOrDefault();
+
+            if (usuarioDb == null)
+                throw new BadRequestException("Error al identificar el usuario");
 
             if (usuarioDb.estado != "Activo")
                 throw new BadRequestException(
@@ -110,7 +113,7 @@ namespace api.Services
             if (vehiculoCrm.Count() != 1)
                 throw new BadRequestException("Error al buscar el vehículo a asignar");
 
-            if (vehiculoCrm.First().Estado != "Inactivo")
+            if (vehiculoCrm.First().Estado == "Inactivo")
                 throw new BadRequestException(
                     "No se puede asignar un vehiculo en estado 'Inactivo'"
                 );
