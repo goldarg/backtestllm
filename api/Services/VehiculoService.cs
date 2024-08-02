@@ -110,8 +110,10 @@ namespace api.Services
             if (vehiculoCrm.Count() != 1)
                 throw new BadRequestException("Error al buscar el vehículo a asignar");
 
-            if (vehiculoCrm.First().Estado != "Activo")
-                throw new BadRequestException("El vehículo debe estar en estado 'Activo'");
+            if (vehiculoCrm.First().Estado != "Inactivo")
+                throw new BadRequestException(
+                    "No se puede asignar un vehiculo en estado 'Inactivo'"
+                );
         }
 
         public async Task<List<VehiculoDto>?> GetVehiculos()
