@@ -214,7 +214,7 @@ namespace api.Services
         public async Task<List<ConductorDto>>? GetListaUsuarios()
         {
             var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario();
-            var topeJerarquia = _userIdentityService.ListarRolesSuperiores().Max(x => x.jerarquia);
+            var topeJerarquia = _userIdentityService.GetJerarquiaRolMayor();
 
             //Obtengo los datos necesarios
             var uri = new StringBuilder(
