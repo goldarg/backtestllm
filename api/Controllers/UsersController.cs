@@ -19,7 +19,7 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [Route("GetListaUsuarios")]
-    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN,CONDUCTOR")]
+    [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
     public async Task<IActionResult> GetListaUsuarios() =>
         Ok(await _userService.GetListaUsuarios());
 
