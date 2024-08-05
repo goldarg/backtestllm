@@ -8,7 +8,7 @@ namespace api.Controllers;
 public class ContratosController : Controller
 {
     private readonly IContratoService _contratoService;
-    
+
     public ContratosController(IContratoService contratoService)
     {
         _contratoService = contratoService;
@@ -16,6 +16,5 @@ public class ContratosController : Controller
 
     [HttpGet]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public async Task<IActionResult> GetContratos()
-        => Ok(await _contratoService.GetContratos());
+    public async Task<IActionResult> GetContratos() => Ok(await _contratoService.GetContratos());
 }

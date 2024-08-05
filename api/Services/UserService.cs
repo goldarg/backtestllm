@@ -348,9 +348,8 @@ namespace api.Services
             var usuarioEditarDb = _unitOfWork
                 .GetRepository<User>()
                 .GetAll()
-                .SingleOrDefault(x => x.idCRM == usuarioCrmId);
-            if (usuarioEditarDb == null)
-                throw new NotFoundException("Usuario no encontrado");
+                .SingleOrDefault(x => x.idCRM == usuarioCrmId) ?? throw new NotFoundException("Usuario no encontrado");
+
             // no puedo modificar a un usuario con jerarquia igual o mayor
             var esInferior = _userIdentityService.EsInferiorEnRoles(usuarioEditarDb);
             if (!esInferior)
@@ -363,10 +362,10 @@ namespace api.Services
             usuarioEditarDb.nombre = userDto.Nombre;
             usuarioEditarDb.apellido = userDto.Apellido;
             usuarioEditarDb.userName = userDto.Email;
-            usuarioEditarDb.Roles = new List<UsuariosRoles> { new() { rolId = rolSelected.id } };
-            usuarioEditarDb.EmpresasAsignaciones = empresasSelected
-                .Select(empresa => new UsuariosEmpresas { empresaId = empresa.id })
-                .ToList();
+
+            ActualizarRoles(usuarioEditarDb, rolSelected);
+            ActualizarEmpresas(usuarioEditarDb, empresasSelected);
+
             _unitOfWork.GetRepository<User>().Update(usuarioEditarDb);
             _unitOfWork.SaveChanges();
 
@@ -628,6 +627,53 @@ namespace api.Services
             var responseData = apiResponse.data[0];
             if (responseData.status != "success")
                 throw new BadRequestException("Error al actualizar el teléfono en CRM");
+        }
+
+        private void ActualizarEmpresas(User usuarioEditarDb, List<Empresa> empresasSelected)
+        {
+            var usuarioEmpresasRepo = _unitOfWork.GetRepository<UsuariosEmpresas>();
+
+            // Empresas actuales del usuario
+            var empresasActuales = usuarioEditarDb.EmpresasAsignaciones.Select(e => e.empresaId).ToList();
+
+            // Empresas deseadas
+            var empresasDeseadas = empresasSelected.Select(e => e.id).ToList();
+
+            // Eliminar empresas que sobran
+            var empresasAEliminar = empresasActuales.Except(empresasDeseadas).ToList();
+            foreach (var empresaId in empresasAEliminar)
+            {
+                var empresaAEliminar = usuarioEditarDb.EmpresasAsignaciones.SingleOrDefault(e => e.empresaId == empresaId);
+                if (empresaAEliminar != null)
+                {
+                    usuarioEmpresasRepo.Delete(empresaAEliminar);
+                }
+            }
+
+            // Agregar empresas que faltan
+            var empresasAAgregar = empresasDeseadas.Except(empresasActuales).ToList();
+            foreach (var empresaId in empresasAAgregar)
+            {
+                usuarioEditarDb.EmpresasAsignaciones.Add(new UsuariosEmpresas { empresaId = empresaId });
+            }
+        }
+
+        private void ActualizarRoles(User usuarioEditarDb, Rol rolSelected)
+        {
+            var usuariosRolesRepo = _unitOfWork.GetRepository<UsuariosRoles>();
+
+            // Obtener rol actual del usuario
+            var rolActual = usuarioEditarDb.Roles.Single();
+
+            if (rolActual.rolId != rolSelected.id)
+            {
+                // Eliminar rol actual
+                var rolAEliminar = usuarioEditarDb.Roles.Single();
+                usuariosRolesRepo.Delete(rolAEliminar);
+
+                // Agregar nuevo rol
+                usuarioEditarDb.Roles.Add(new UsuariosRoles { rolId = rolSelected.id });
+            }
         }
     }
 }
