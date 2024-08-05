@@ -213,7 +213,8 @@ namespace api.Services
                     {
                         id = x.idCRM,
                         name = x.nombre + " " + x.apellido, //Mismo formato que otroga el CRM
-                        empresaId = x.EmpresasAsignaciones.First().Empresa.idCRM
+                        empresaId = x.EmpresasAsignaciones.First().Empresa.idCRM,
+                        estado = x.estado
                     })
             ];
         }
