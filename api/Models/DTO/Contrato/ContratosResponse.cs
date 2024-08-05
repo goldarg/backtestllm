@@ -34,6 +34,7 @@ public class ContratoMarcoDto
 
 public abstract class ContratoBaseDto
 {
+    public string id { get; set; }
     public virtual DateTime? FechaInicioContrato { get; set; }
     public virtual DateTime? FechaFinContrato { get; set; }
 
@@ -46,8 +47,6 @@ public abstract class ContratoBaseDto
 
 public class ContratoRentingDto : ContratoBaseDto
 {
-    public string id { get; set; }
-
     [JsonProperty("Fecha_inicio_renting")]
     public override DateTime? FechaInicioContrato { get; set; }
 
@@ -70,8 +69,6 @@ public class ContratoRentingDto : ContratoBaseDto
 /// </summary>
 public class ContratoServicioRdaDto : ContratoBaseDto
 {
-    public string id { get; set; }
-
     [JsonProperty("Inicio_de_servicio")]
     public override DateTime? FechaInicioContrato { get; set; }
 
@@ -101,8 +98,6 @@ public class ContratoServicioRdaDto : ContratoBaseDto
 
 public class ContratoAlquilerDto : ContratoBaseDto
 {
-    public string id { get; set; }
-
     [JsonProperty("Fecha_de_Entrega")]
     public override DateTime? FechaInicioContrato { get; set; }
 
@@ -116,8 +111,6 @@ public class ContratoAlquilerDto : ContratoBaseDto
 
 public class ContratoTelemetriaDto : ContratoBaseDto
 {
-    public string id { get; set; }
-
     [JsonProperty("Fecha")]
     public override DateTime? FechaInicioContrato { get; set; }
 
