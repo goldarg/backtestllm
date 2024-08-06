@@ -38,6 +38,8 @@ public abstract class ContratoBaseDto
     public virtual DateTime? FechaInicioContrato { get; set; }
     public virtual DateTime? FechaFinContrato { get; set; }
 
+    public virtual CRMRelatedObject? Dominio { get; set; }
+
     // necesario para saber a que contrato pertenece, recibido del CRM
     public virtual CRMRelatedObject? ContratoPadre { get; set; }
 
@@ -55,7 +57,6 @@ public class ContratoRentingDto : ContratoBaseDto
 
     [JsonProperty("Canon")]
     public decimal? CanonMensual { get; set; }
-    public CRMRelatedObject? Dominio { get; set; }
 
     [JsonProperty("Fecha_de_extensi_n_del_Renting")]
     public DateTime? FechaVencimientoAdenda { get; set; }
@@ -104,6 +105,9 @@ public class ContratoAlquilerDto : ContratoBaseDto
     [JsonProperty("Fecha_de_Devolucion")]
     public override DateTime? FechaFinContrato { get; set; }
 
+    [JsonProperty("Dominio_Alquiler")]
+    public override CRMRelatedObject? Dominio { get; set; }
+
     // necesario para saber a que contrato pertenece
     [JsonProperty("Contrato")]
     public override CRMRelatedObject? ContratoPadre { get; set; }
@@ -116,6 +120,9 @@ public class ContratoTelemetriaDto : ContratoBaseDto
 
     [JsonProperty("Fecha_de_Fin")]
     public override DateTime? FechaFinContrato { get; set; }
+
+    [JsonProperty("Dominio_vehiculo")]
+    public override CRMRelatedObject? Dominio { get; set; }
 
     // TODO Este campo tiene un poco mas de logica extraña
     [JsonProperty("Fee_por_auto")]
