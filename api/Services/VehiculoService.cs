@@ -365,6 +365,8 @@ namespace api.Services
             foreach (var item in dataArray)
             {
                 var contrato = item[fields[2]].ToObject<CRMRelatedObject>();
+                if (contrato == null)
+                    continue;
                 if (!contratos.Any(c => c.id == contrato.id))
                     continue;
 
