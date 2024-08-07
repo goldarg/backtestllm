@@ -30,6 +30,23 @@ public class ContratoMarcoDto
 
     // utiizado para filtrar los contratos marcos que se pueden ver
     public CRMRelatedObject? Cuenta { get; set; }
+
+    // si es de tipo renting esta relleno
+    [JsonProperty("Servicios")]
+    public List<string>? Servicios { get; set; }
+
+    // si es de tipo servicio_rda esta relleno
+    [JsonProperty("Gesti_n")]
+    public bool? ServicioIncluidoGestion { get; set; }
+
+    [JsonProperty("Infracciones_Servicio")]
+    public bool? ServicioIncluidoInfracciones { get; set; }
+
+    [JsonProperty("Seguro")]
+    public bool? ServicioIncluidoSeguro { get; set; }
+
+    [JsonProperty("Telemetr_a_Servicio")]
+    public bool? ServicioIncluidoTelemetria { get; set; }
 }
 
 public abstract class ContratoBaseDto
@@ -61,9 +78,6 @@ public class ContratoRentingDto : ContratoBaseDto
     [JsonProperty("Fecha_de_extensi_n_del_Renting")]
     public DateTime? FechaVencimientoAdenda { get; set; }
 
-    [JsonProperty("Servicios")]
-    public string? Servicios { get; set; }
-
     [JsonProperty("Nombre_del_contrato")]
     public override CRMRelatedObject? ContratoPadre { get; set; }
 }
@@ -81,19 +95,6 @@ public class ContratoServicioRdaDto : ContratoBaseDto
 
     [JsonProperty("Fee_por_auto")]
     public decimal? FeeMensual { get; set; }
-
-    // servicios incluidos
-    [JsonProperty("Gesti_n")]
-    public bool? ServicioIncluidoGestion { get; set; }
-
-    [JsonProperty("Infracciones")]
-    public bool? ServicioIncluidoInfracciones { get; set; }
-
-    [JsonProperty("Seguro")]
-    public bool? ServicioIncluidoSeguro { get; set; }
-
-    [JsonProperty("Telemetr_a")]
-    public bool? ServicioIncluidoTelemetria { get; set; }
 
     // necesario para saber a que contrato pertenece
     [JsonProperty("Contrato")]
