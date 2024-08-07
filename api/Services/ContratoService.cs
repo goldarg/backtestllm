@@ -57,7 +57,7 @@ public class ContratoService : IContratoService
             .ToDictionary(c => c.id ?? "");
 
         var tRenting = GetContratosInternos<ContratoRentingDto>(
-            "crm/v2/Renting?fields=id,Fecha_inicio_renting,Fecha_fin_de_renting,Canon,Dominio,Fecha_de_extensi_n_del_Renting,Nombre_del_contrato",
+            "crm/v2/Renting?fields=id,Fecha_inicio_renting,Fecha_fin_de_renting,Canon,Dominio,Fecha_de_extensi_n_del_Renting,Nombre_del_contrato,Servicios",
             contratosMarcoDict
         );
         var tServicioRda = GetContratosInternos<ContratoServicioRdaDto>(

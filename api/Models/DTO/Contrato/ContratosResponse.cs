@@ -61,6 +61,9 @@ public class ContratoRentingDto : ContratoBaseDto
     [JsonProperty("Fecha_de_extensi_n_del_Renting")]
     public DateTime? FechaVencimientoAdenda { get; set; }
 
+    [JsonProperty("Servicios")]
+    public string? Servicios { get; set; }
+
     [JsonProperty("Nombre_del_contrato")]
     public override CRMRelatedObject? ContratoPadre { get; set; }
 }
