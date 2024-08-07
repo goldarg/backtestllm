@@ -33,7 +33,8 @@ public class ContratoService : IContratoService
         var tipoContratoCriteria =
             "((Tipo_de_Contrato:equals:Renting)or(Tipo_de_Contrato:equals:Fleet Management)or(Tipo_de_Contrato:equals:Alquiler Corporativo)or(Tipo_de_Contrato:equals:Telemetria))";
         var criteria = $"{tipoContratoCriteria}{accountCriteria}";
-        var fields = "id,Cuenta,Tipo_de_Contrato,Plazo_Propuesta";
+        var fields =
+            "id,Cuenta,Tipo_de_Contrato,Plazo_Propuesta,Servicios,Gesti_n,Infracciones_Servicio,Seguro,Telemetr_a_Servicio";
         var uri = new StringBuilder($"crm/v2/Contratos/search?criteria={criteria}&fields={fields}");
 
         var responseString = await _crmService.Get(uri.ToString());
@@ -57,11 +58,11 @@ public class ContratoService : IContratoService
             .ToDictionary(c => c.id ?? "");
 
         var tRenting = GetContratosInternos<ContratoRentingDto>(
-            "crm/v2/Renting?fields=id,Fecha_inicio_renting,Fecha_fin_de_renting,Canon,Dominio,Fecha_de_extensi_n_del_Renting,Nombre_del_contrato,Servicios",
+            "crm/v2/Renting?fields=id,Fecha_inicio_renting,Fecha_fin_de_renting,Canon,Dominio,Fecha_de_extensi_n_del_Renting,Nombre_del_contrato",
             contratosMarcoDict
         );
         var tServicioRda = GetContratosInternos<ContratoServicioRdaDto>(
-            "crm/v2/Servicios_RDA?fields=id,Inicio_de_servicio,Fin_de_servicio,Dominio,Fee_por_auto,Gesti_n,Infracciones,Seguro,Telemetr_a,Contrato",
+            "crm/v2/Servicios_RDA?fields=id,Inicio_de_servicio,Fin_de_servicio,Dominio,Fee_por_auto,Contrato",
             contratosMarcoDict
         );
         var tAlquiler = GetContratosInternos<ContratoAlquilerDto>(
