@@ -169,7 +169,7 @@ namespace api.Services
             //and(Estado:equals:Talcosa) al final del request
             uri = new StringBuilder(
                 "crm/v2/Contratos/search?criteria="
-                    + "((Tipo_de_Contrato:equals:Renting)or(Tipo_de_Contrato:equals:Fleet Management)or"
+                    + "((Tipo_de_Contrato:equals:Renting)or(Tipo_de_Contrato:equals:Fleet Management)or(Tipo_de_Contrato:equals:Telemetria)or"
                     + "(Tipo_de_Contrato:equals:Alquiler Corporativo))&fields=id,Tipo_de_Contrato,Cuenta,Plazo_Propuesta"
             );
 
@@ -221,6 +221,22 @@ namespace api.Services
                         "Estado",
                         "id",
                         "Fecha_fin_de_renting",
+                        "Centro_de_costos",
+                        "Sector"
+                    ],
+                    contratos,
+                    conductores_Vehiculo_Bag
+                ),
+                // Telemetria
+                ProcessRelatedFields(
+                    "crm/v2/Telemetrias?fields=",
+                    [
+                        "Dominio_vehiculo",
+                        "Conductor",
+                        "Nombre_del_contrato",
+                        "Estado",
+                        "id",
+                        "Fecha_de_Fin",
                         "Centro_de_costos",
                         "Sector"
                     ],
