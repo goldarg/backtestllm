@@ -5,408 +5,279 @@ using api.Connected_Services;
 using api.DataAccess;
 using api.Exceptions;
 using api.Models.DTO;
+using api.Models.DTO.Contrato;
 using api.Models.DTO.Operaciones;
 using api.Models.DTO.Vehiculo;
 using api.Models.Entities;
 using Newtonsoft.Json.Linq;
 
-namespace api.Services
+namespace api.Services;
+
+public class VehiculoService(
+    IHttpClientFactory _httpClientFactory,
+    IRdaUnitOfWork _unitOfWork,
+    CRMService _crmService,
+    IUserIdentityService _identityService,
+    IActividadUsuarioService _actividadUsuarioService,
+    IContratoService _contratoService
+) : IVehiculoService
 {
-    public class VehiculoService : IVehiculoService
+    public async Task<string?> AsignarVehiculo(AsignarVehiculoDto asignarVehiculoDto)
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IRdaUnitOfWork _unitOfWork;
-        private readonly CRMService _crmService;
-        private readonly IUserIdentityService _identityService;
-        private readonly IActividadUsuarioService _actividadUsuarioService;
+        var userRepository = _unitOfWork.GetRepository<User>();
 
-        public VehiculoService(
-            IHttpClientFactory httpClientFactory,
-            IRdaUnitOfWork unitOfWork,
-            CRMService crmService,
-            IUserIdentityService identityService,
-            IActividadUsuarioService actividadUsuarioService
-        )
+        var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
+
+        ValidateAsignarVehiculo(asignarVehiculoDto, httpClient);
+
+        if (asignarVehiculoDto.usuarioId == null)
         {
-            _httpClientFactory = httpClientFactory;
-            _unitOfWork = unitOfWork;
-            _crmService = crmService;
-            _identityService = identityService;
-            _actividadUsuarioService = actividadUsuarioService;
-        }
-
-        public async Task<string?> AsignarVehiculo(AsignarVehiculoDto asignarVehiculoDto)
-        {
-            var userRepository = _unitOfWork.GetRepository<User>();
-
-            var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
-
-            ValidateAsignarVehiculo(asignarVehiculoDto, httpClient);
-
-            if (asignarVehiculoDto.usuarioId == null)
-            {
-                asignarVehiculoDto.usuarioId = userRepository
-                    .GetAll()
-                    .Where(x => x.nombre == "Sin" && x.apellido == "Asignar")
-                    .First()
-                    .idCRM;
-            }
-
-            //Busco el conductor que ahora voy a sacar, para agregarle el log mas adelante
-            var uri = new StringBuilder(
-                $"crm/v2/{asignarVehiculoDto.tipoContrato}/{asignarVehiculoDto.idContratoInterno}?fields=Conductor"
-            );
-            var json = await _crmService.Get(uri.ToString());
-            var conductorViejoCrm = JsonSerializer.Deserialize<List<BuscarConductorDto>>(json);
-
-            var conductorViejoId =
-                conductorViejoCrm.Count() > 0 ? conductorViejoCrm.First().Conductor.id : null;
-
-            //Busco y actualizo según el tipo de contrato
-            string targetModule;
-            if (asignarVehiculoDto.tipoContrato == "Fleet Management")
-                asignarVehiculoDto.tipoContrato = "Servicios_RDA";
-            else if (asignarVehiculoDto.tipoContrato == "Renting")
-                asignarVehiculoDto.tipoContrato = "Renting";
-            else if (asignarVehiculoDto.tipoContrato == "Alquiler Corporativo")
-                asignarVehiculoDto.tipoContrato = "Alquileres";
-            else
-                throw new BadRequestException(
-                    "No se pudo determinar el tipo de contrato del vehículo"
-                );
-
-            uri = new StringBuilder($"crm/v2/{asignarVehiculoDto.tipoContrato}/upsert");
-
-            //Armo el objeto para enviar al CRM, y devuelvo la respuesta
-            var jsonObject = new
-            {
-                data = new[]
-                {
-                    new
-                    {
-                        id = asignarVehiculoDto.idContratoInterno,
-                        Conductor = new { id = asignarVehiculoDto.usuarioId }
-                    }
-                }
-            };
-
-            string jsonString = JsonSerializer.Serialize(
-                jsonObject,
-                new JsonSerializerOptions { WriteIndented = true }
-            );
-            HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync(uri.ToString(), content);
-
-            _actividadUsuarioService.CrearActividadCrm(
-                asignarVehiculoDto.usuarioId,
-                "Asignación de vehículo " + asignarVehiculoDto.dominio
-            );
-
-            //Puede no tener conductor anterior. Si lo tiene, le agrego el log
-            if (conductorViejoId != null)
-            {
-                _actividadUsuarioService.CrearActividadCrm(
-                    conductorViejoId,
-                    "Desasignación del vehículo" + asignarVehiculoDto.dominio
-                );
-            }
-
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        private async void ValidateAsignarVehiculo(
-            AsignarVehiculoDto asignarVehiculoDto,
-            HttpClient httpClient
-        )
-        {
-            var usuarioDb = _unitOfWork
-                .GetRepository<User>()
+            asignarVehiculoDto.usuarioId = userRepository
                 .GetAll()
-                .Where(x => x.idCRM == asignarVehiculoDto.usuarioId)
-                .FirstOrDefault();
-
-            if (usuarioDb == null)
-                throw new BadRequestException("Error al identificar el usuario");
-
-            if (usuarioDb.estado != "Activo")
-                throw new BadRequestException(
-                    "El usuario debe tener estado 'Activo' para asignarle un vehículo"
-                );
-
-            var uri = new StringBuilder(
-                $"crm/v2/vehiculos/{asignarVehiculoDto.vehiculoId}?fields=Estado"
-            );
-            var json = await _crmService.Get(uri.ToString());
-            var vehiculoCrm = JsonSerializer.Deserialize<List<VehiculoEstadoDto>>(json);
-
-            if (vehiculoCrm.Count() != 1)
-                throw new BadRequestException("Error al buscar el vehículo a asignar");
-
-            if (vehiculoCrm.First().Estado == "Inactivo")
-                throw new BadRequestException(
-                    "No se puede asignar un vehiculo en estado 'Inactivo'"
-                );
+                .Where(x => x.nombre == "Sin" && x.apellido == "Asignar")
+                .First()
+                .idCRM;
         }
 
-        public async Task<List<VehiculoDto>?> GetVehiculos()
+        //Busco el conductor que ahora voy a sacar, para agregarle el log mas adelante
+        var uri = new StringBuilder(
+            $"crm/v2/{asignarVehiculoDto.tipoContrato}/{asignarVehiculoDto.idContratoInterno}?fields=Conductor"
+        );
+        var json = await _crmService.Get(uri.ToString());
+        var conductorViejoCrm = JsonSerializer.Deserialize<List<BuscarConductorDto>>(json);
+
+        var conductorViejoId =
+            conductorViejoCrm.Count() > 0 ? conductorViejoCrm.First().Conductor.id : null;
+
+        //Busco y actualizo según el tipo de contrato
+        string targetModule;
+        if (asignarVehiculoDto.tipoContrato == "Fleet Management")
+            asignarVehiculoDto.tipoContrato = "Servicios_RDA";
+        else if (asignarVehiculoDto.tipoContrato == "Renting")
+            asignarVehiculoDto.tipoContrato = "Renting";
+        else if (asignarVehiculoDto.tipoContrato == "Alquiler Corporativo")
+            asignarVehiculoDto.tipoContrato = "Alquileres";
+        else
+            throw new BadRequestException("No se pudo determinar el tipo de contrato del vehículo");
+
+        uri = new StringBuilder($"crm/v2/{asignarVehiculoDto.tipoContrato}/upsert");
+
+        //Armo el objeto para enviar al CRM, y devuelvo la respuesta
+        var jsonObject = new
         {
-            var empresasDisponibles = _identityService.ListarEmpresasDelUsuario();
-
-            //Get a Vehiculos con los datos que necesito
-            var uri = new StringBuilder(
-                "crm/v2/Vehiculos?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta,"
-                    + "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego,"
-                    + "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde,Ultimo_Odometro_KM,Fecha_siguiente_VTV,Pa_s,Tipo_cobertura"
-            );
-
-            var json = await _crmService.Get(uri.ToString());
-            var vehiculos = JsonSerializer.Deserialize<List<VehiculoDto>>(json);
-
-            //Hasta aca tenemos los vehiculos. Ahora empiezo a buscar los conductores de cada uno.
-            //Para eso, primero busco los contratos, y agrupo por tipo de contrato:
-
-            //Cuando se defina cómo es el tema de los estados, sería tan sencillo como agregar un
-            //and(Estado:equals:Talcosa) al final del request
-            uri = new StringBuilder(
-                "crm/v2/Contratos/search?criteria="
-                    + "((Tipo_de_Contrato:equals:Renting)or(Tipo_de_Contrato:equals:Fleet Management)or(Tipo_de_Contrato:equals:Telemetria)or"
-                    + "(Tipo_de_Contrato:equals:Alquiler Corporativo))&fields=id,Tipo_de_Contrato,Cuenta,Plazo_Propuesta"
-            );
-
-            json = await _crmService.Get(uri.ToString());
-            var contratos = JsonSerializer.Deserialize<List<ContratosIdDto>>(json);
-
-            var conductores_Vehiculo_Bag = new ConcurrentBag<ConductorCuentaVehiculoDto>();
-
-            await Task.WhenAll(
-                // Alquileres
-                ProcessRelatedFields(
-                    "crm/v2/Alquileres?fields=",
-                    [
-                        "Dominio_Alquiler",
-                        "Conductor",
-                        "Contrato",
-                        "Estado",
-                        "id",
-                        "Fecha_de_Devolucion",
-                        "Centro_de_costos",
-                        "Sector"
-                    ],
-                    contratos,
-                    conductores_Vehiculo_Bag
-                ),
-                // Servicios
-                ProcessRelatedFields(
-                    "crm/v2/Servicios_RDA?fields=",
-                    [
-                        "Dominio",
-                        "Conductor",
-                        "Contrato",
-                        "Estado",
-                        "id",
-                        "Fin_de_servicio",
-                        "Centro_de_costos",
-                        "Sector"
-                    ],
-                    contratos,
-                    conductores_Vehiculo_Bag
-                ),
-                // Renting
-                ProcessRelatedFields(
-                    "crm/v2/Renting?fields=",
-                    [
-                        "Dominio",
-                        "Conductor",
-                        "Nombre_del_contrato",
-                        "Estado",
-                        "id",
-                        "Fecha_fin_de_renting",
-                        "Centro_de_costos",
-                        "Sector"
-                    ],
-                    contratos,
-                    conductores_Vehiculo_Bag
-                ),
-                // Telemetria
-                ProcessRelatedFields(
-                    "crm/v2/Telemetrias?fields=",
-                    [
-                        "Dominio_vehiculo",
-                        "Conductor",
-                        "Nombre_del_contrato",
-                        "Estado",
-                        "id",
-                        "Fecha_de_Fin",
-                        "Centro_de_costos",
-                        "Sector"
-                    ],
-                    contratos,
-                    conductores_Vehiculo_Bag
-                )
-            );
-
-            var conductores_Vehiculo = conductores_Vehiculo_Bag.ToList();
-
-            //Joineo con los 3 modulos para traer el conductor y su respectivo contrato
-            vehiculos
-                ?.Join(
-                    conductores_Vehiculo,
-                    v => v.Name,
-                    c => c.Dominio.name,
-                    (v, c) =>
-                    {
-                        v.Conductor = c.Conductor;
-                        v.Contrato = c.Contrato;
-                        v.plazoContrato = c.Plazo_Propuesta;
-                        v.estadoContratoInterno = c.estadoContratoInterno;
-                        v.idContratoInterno = c.contratoIdInterno;
-                        v.fechaFinContratoInterno = c.FechaFinContratoInterno;
-                        v.Centro_de_costos = c.Centro_de_costos;
-                        v.Sector = c.Sector;
-                        return v;
-                    }
-                )
-                .ToList();
-
-            //Joineo con los datos de Contratos para saber el tipo de contrato que representa
-            vehiculos
-                ?.Join(
-                    contratos,
-                    v => v.Contrato.id,
-                    c => c.id,
-                    (v, c) =>
-                    {
-                        v.tipoContrato = c.Tipo_de_Contrato;
-                        v.Cuenta = c.Cuenta;
-                        v.Grupo = c.Cuenta; //TODO sacar hardcodeo cuando esten los grupos. Se deja asi porque una empresa "Standalone" se tiene a sí misma como grupo
-                        v.plazoContrato = c.Plazo_Propuesta;
-                        return v;
-                    }
-                )
-                .ToList();
-
-            return vehiculos.Where(x => empresasDisponibles.Contains(x.Cuenta.id)).ToList();
-        }
-
-        public async Task<List<OperacionesVehiculoDto>> HistorialOperaciones(
-            string dominio,
-            string tipoContrato
-        )
-        {
-            var empresasDisponibles = _identityService.ListarEmpresasDelUsuario();
-
-            var uris = new Dictionary<string, string>
+            data = new[]
             {
+                new
                 {
-                    "Alquiler Corporativo",
-                    $"crm/v2/Alquileres/search?criteria=(Dominio_Alquiler.name:equals:"
-                        + dominio
-                        + ")&fields=Dominio_Alquiler,Contrato"
-                },
-                {
-                    "Fleet Management",
-                    $"crm/v2/Servicios_RDA/search?criteria=(Dominio.name:equals:"
-                        + dominio
-                        + ")&fields=Dominio,Contrato"
-                },
-                {
-                    "Renting",
-                    $"crm/v2/Renting/search?criteria=(Dominio.name:equals:"
-                        + dominio
-                        + ")&fields=Dominio,Nombre_del_contrato"
+                    id = asignarVehiculoDto.idContratoInterno,
+                    Conductor = new { id = asignarVehiculoDto.usuarioId }
                 }
-            };
+            }
+        };
 
-            var json = await _crmService.Get(uris[tipoContrato]);
-            var contratoId = JArray
-                .Parse(json)[0][tipoContrato == "Renting" ? "Nombre_del_contrato" : "Contrato"]
-                .ToObject<CRMRelatedObject>()
-                .id;
+        string jsonString = JsonSerializer.Serialize(
+            jsonObject,
+            new JsonSerializerOptions { WriteIndented = true }
+        );
+        HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+        var response = await httpClient.PostAsync(uri.ToString(), content);
 
-            var uri = new StringBuilder(
-                "crm/v2/Contratos/search?criteria=(Id:equals:" + contratoId + ")&fields=Cuenta"
+        _actividadUsuarioService.CrearActividadCrm(
+            asignarVehiculoDto.usuarioId,
+            "Asignación de vehículo " + asignarVehiculoDto.dominio
+        );
+
+        //Puede no tener conductor anterior. Si lo tiene, le agrego el log
+        if (conductorViejoId != null)
+        {
+            _actividadUsuarioService.CrearActividadCrm(
+                conductorViejoId,
+                "Desasignación del vehículo" + asignarVehiculoDto.dominio
             );
-
-            json = await _crmService.Get(uri.ToString());
-
-            var contrato = JsonSerializer.Deserialize<List<ContratosIdDto>>(json)[0];
-
-            if (!empresasDisponibles.Contains(contrato.Cuenta.id))
-                return [];
-
-            uri = new StringBuilder(
-                "crm/v2/Purchase_Orders/search?criteria=(Vehiculo.name:equals:"
-                    + dominio
-                    + ")"
-                    + "&fields=id,Clasificaciones,Vehiculo,Product_Details,Vendor_Name,Turno,Status,PO_Number"
-            );
-
-            json = await _crmService.Get(uri.ToString());
-            var operaciones = JsonSerializer.Deserialize<List<OperacionesResponseDto>>(json);
-
-            var response = operaciones
-                .Select(o => new OperacionesVehiculoDto
-                {
-                    Id = o.Id,
-                    TipoOperacion = o.TipoOperacion,
-                    Detalle = o.Detalle.Any()
-                        ? o.Detalle.Select(d => d.Product.Name).ToList()
-                        : null,
-                    Taller = o.Taller?.name,
-                    FechaTurno = o.FechaTurno,
-                    Estado = o.Estado,
-                    OT = o.OT
-                })
-                .ToList();
-
-            return response;
         }
 
-        private async Task ProcessRelatedFields(
-            string uri,
-            string[] fields,
-            List<ContratosIdDto> contratos,
-            ConcurrentBag<ConductorCuentaVehiculoDto> conductores_Vehiculo
-        )
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    private async void ValidateAsignarVehiculo(
+        AsignarVehiculoDto asignarVehiculoDto,
+        HttpClient httpClient
+    )
+    {
+        var usuarioDb = _unitOfWork
+            .GetRepository<User>()
+            .GetAll()
+            .Where(x => x.idCRM == asignarVehiculoDto.usuarioId)
+            .FirstOrDefault();
+
+        if (usuarioDb == null)
+            throw new BadRequestException("Error al identificar el usuario");
+
+        if (usuarioDb.estado != "Activo")
+            throw new BadRequestException(
+                "El usuario debe tener estado 'Activo' para asignarle un vehículo"
+            );
+
+        var uri = new StringBuilder(
+            $"crm/v2/vehiculos/{asignarVehiculoDto.vehiculoId}?fields=Estado"
+        );
+        var json = await _crmService.Get(uri.ToString());
+        var vehiculoCrm = JsonSerializer.Deserialize<List<VehiculoEstadoDto>>(json);
+
+        if (vehiculoCrm.Count() != 1)
+            throw new BadRequestException("Error al buscar el vehículo a asignar");
+
+        if (vehiculoCrm.First().Estado == "Inactivo")
+            throw new BadRequestException("No se puede asignar un vehiculo en estado 'Inactivo'");
+    }
+
+    public async Task<List<VehiculoDto>?> GetVehiculos()
+    {
+        //Get a Vehiculos con los datos que necesito
+        var uri = new StringBuilder(
+            "crm/v2/Vehiculos?fields=id,Name,Estado,Marca_Vehiculo,Modelo,Versi_n,Chasis,Color,A_o,Medida_Cubierta,"
+                + "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego,"
+                + "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde,Ultimo_Odometro_KM,Fecha_siguiente_VTV,Pa_s,Tipo_cobertura"
+        );
+        // TODO ACA SE PODRIAN HACER LAS DOS LLAMADAS EN PARALELO get vehiculos y get contratos
+        var getVehiculosTask = _crmService.Get(uri.ToString());
+        var getContratosTask = _contratoService.GetContratos();
+        await Task.WhenAll(getVehiculosTask, getContratosTask);
+
+        var json = await getVehiculosTask;
+        var vehiculos = JsonSerializer.Deserialize<List<VehiculoDto>>(json);
+        if (vehiculos == null)
+            return [];
+
+        var contratos = await getContratosTask;
+        if (contratos == null)
+            return [];
+
+        var vehiculosDict = vehiculos.ToDictionary(v => v.Name);
+
+        var vehiculosRespuesta = new List<VehiculoDto>();
+
+        MapearContratosAVehiculos(vehiculosDict, contratos.ContratosRenting, vehiculosRespuesta);
+        MapearContratosAVehiculos(vehiculosDict, contratos.ContratosAlquiler, vehiculosRespuesta);
+        MapearContratosAVehiculos(vehiculosDict, contratos.ContratosTelemetria, vehiculosRespuesta);
+        MapearContratosAVehiculos(
+            vehiculosDict,
+            contratos.ContratosServicioRda,
+            vehiculosRespuesta
+        );
+
+        return vehiculosRespuesta;
+    }
+
+    public async Task<List<OperacionesVehiculoDto>> HistorialOperaciones(
+        string dominio,
+        string tipoContrato
+    )
+    {
+        var empresasDisponibles = _identityService.ListarEmpresasDelUsuario();
+
+        var uris = new Dictionary<string, string>
         {
-            var dataUri = new StringBuilder(uri);
-            foreach (var field in fields)
             {
-                dataUri.Append(field).Append(",");
+                "Alquiler Corporativo",
+                $"crm/v2/Alquileres/search?criteria=(Dominio_Alquiler.name:equals:"
+                    + dominio
+                    + ")&fields=Dominio_Alquiler,Contrato"
+            },
+            {
+                "Fleet Management",
+                $"crm/v2/Servicios_RDA/search?criteria=(Dominio.name:equals:"
+                    + dominio
+                    + ")&fields=Dominio,Contrato"
+            },
+            {
+                "Renting",
+                $"crm/v2/Renting/search?criteria=(Dominio.name:equals:"
+                    + dominio
+                    + ")&fields=Dominio,Nombre_del_contrato"
             }
+        };
 
-            var jsonData = await _crmService.Get(dataUri.ToString().TrimEnd(','));
-            var dataArray = JArray.Parse(jsonData);
+        var json = await _crmService.Get(uris[tipoContrato]);
+        var contratoId = JArray
+            .Parse(json)[0][tipoContrato == "Renting" ? "Nombre_del_contrato" : "Contrato"]
+            .ToObject<CRMRelatedObject>()
+            .id;
 
-            foreach (var item in dataArray)
+        var uri = new StringBuilder(
+            "crm/v2/Contratos/search?criteria=(Id:equals:" + contratoId + ")&fields=Cuenta"
+        );
+
+        json = await _crmService.Get(uri.ToString());
+
+        var contrato = JsonSerializer.Deserialize<List<ContratoDto>>(json)[0];
+
+        if (!empresasDisponibles.Contains(contrato.Cuenta.id))
+            return [];
+
+        uri = new StringBuilder(
+            "crm/v2/Purchase_Orders/search?criteria=(Vehiculo.name:equals:"
+                + dominio
+                + ")"
+                + "&fields=id,Clasificaciones,Vehiculo,Product_Details,Vendor_Name,Turno,Status,PO_Number"
+        );
+
+        json = await _crmService.Get(uri.ToString());
+        var operaciones = JsonSerializer.Deserialize<List<OperacionesResponseDto>>(json);
+
+        var response = operaciones
+            .Select(o => new OperacionesVehiculoDto
             {
-                var contrato = item[fields[2]].ToObject<CRMRelatedObject>();
-                if (contrato == null)
-                    continue;
-                if (!contratos.Any(c => c.id == contrato.id))
-                    continue;
+                Id = o.Id,
+                TipoOperacion = o.TipoOperacion,
+                Detalle = o.Detalle.Any() ? o.Detalle.Select(d => d.Product.Name).ToList() : null,
+                Taller = o.Taller?.name,
+                FechaTurno = o.FechaTurno,
+                Estado = o.Estado,
+                OT = o.OT
+            })
+            .ToList();
 
-                var dominio = item[fields[0]].ToObject<CRMRelatedObject>();
-                var conductor = item[fields[1]].ToObject<CRMRelatedObject>();
-                var estado = item[fields[3]].ToObject<string>();
-                var contratoIdInterno = item[fields[4]].ToObject<string>();
-                var fechaFinContratoInterno = item[fields[5]].ToObject<DateTime?>();
-                var centroDeCostos = item[fields[6]].ToObject<string?>();
-                var sector = item[fields[7]].ToObject<string?>();
+        return response;
+    }
 
-                conductores_Vehiculo.Add(
-                    new ConductorCuentaVehiculoDto
-                    {
-                        Conductor = conductor,
-                        Dominio = dominio,
-                        Contrato = contrato,
-                        estadoContratoInterno = estado,
-                        contratoIdInterno = contratoIdInterno,
-                        FechaFinContratoInterno = fechaFinContratoInterno,
-                        Centro_de_costos = centroDeCostos,
-                        Sector = sector
-                    }
-                );
+    /// <summary>
+    /// Inyecta información de contratos en los vehículos correspondientes.
+    /// </summary>
+    /// <param name="vehiculosDict">Diccionario que mapea dominios a objetos VehiculoDto.</param>
+    /// <param name="contratos">Colección de contratos a procesar.</param>
+    /// <param name="vehiculosRespuesta">Lista de vehículos actualizados con la información de los contratos.</param>
+    /// <remarks>
+    /// El método recorre la lista de contratos y, si encuentra un vehículo correspondiente en el diccionario,
+    /// actualiza las propiedades de VehiculoDto con la información del contrato.
+    /// </remarks>
+    private void MapearContratosAVehiculos(
+        Dictionary<string, VehiculoDto> vehiculosDict,
+        IEnumerable<ContratoBaseDto> contratos,
+        List<VehiculoDto> vehiculosRespuesta
+    )
+    {
+        foreach (var c in contratos)
+        {
+            if (
+                !string.IsNullOrEmpty(c?.Dominio?.name)
+                && vehiculosDict.TryGetValue(c.Dominio.name, out var v)
+            )
+            {
+                v.Conductor = c.Conductor;
+                v.Contrato = c.ContratoPadre;
+                v.plazoContrato = c.ContratoMarco.PlazoPropuesta;
+                v.estadoContratoInterno = c.ContratoMarco.Estado;
+                v.idContratoInterno = c.id;
+                v.fechaFinContratoInterno = c.FechaFinContrato;
+                v.Centro_de_costos = c.Centro_de_costos;
+                v.Sector = c.Sector;
+                v.tipoContrato = c.ContratoMarco.TipoDeContrato;
+                v.Cuenta = c.ContratoMarco.Cuenta;
+                //TODO sacar hardcodeo cuando esten los grupos. Se deja asi porque una empresa "Standalone" se tiene a sí misma como grupo
+                v.Grupo = c.ContratoMarco.Cuenta;
+                v.plazoContrato = c.ContratoMarco.PlazoPropuesta;
+                vehiculosRespuesta.Add(v);
             }
         }
     }

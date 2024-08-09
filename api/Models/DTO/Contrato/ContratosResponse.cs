@@ -53,7 +53,17 @@ public class ContratoMarcoDto
 
 public abstract class ContratoBaseDto
 {
+    [JsonProperty("id")]
     public string id { get; set; }
+
+    [JsonProperty("Conductor")]
+    public CRMRelatedObject Conductor { get; set; }
+
+    [JsonProperty("Centro_de_costos")]
+    public string? Centro_de_costos { get; set; }
+
+    [JsonProperty("Sector")]
+    public string? Sector { get; set; }
     public virtual DateTime? FechaInicioContrato { get; set; }
     public virtual DateTime? FechaFinContrato { get; set; }
 
