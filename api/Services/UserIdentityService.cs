@@ -27,7 +27,7 @@ namespace api.Services
                 .GetRepository<User>()
                 .GetAll()
                 .Where(x => x.userName == claimIdentity.Name)
-                .SingleOrDefault();
+                .FirstOrDefault();
 
             if (user == null)
                 throw new BadRequestException("Ocurrió un error al validar al usuario");

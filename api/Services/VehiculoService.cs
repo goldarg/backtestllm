@@ -48,7 +48,7 @@ namespace api.Services
                 asignarVehiculoDto.usuarioId = userRepository
                     .GetAll()
                     .Where(x => x.nombre == "Sin" && x.apellido == "Asignar")
-                    .Single()
+                    .First()
                     .idCRM;
             }
 

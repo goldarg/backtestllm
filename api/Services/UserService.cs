@@ -73,9 +73,7 @@ namespace api.Services
             var maxJerarquiaRequest = _userIdentityService.GetJerarquiaRolMayor();
             var usersRepo = _unitOfWork.GetRepository<User>().GetAll();
 
-            var user = usersRepo
-                .Where(x => x.idCRM == desactivarDto.usuarioCrmId)
-                .SingleOrDefault();
+            var user = usersRepo.Where(x => x.idCRM == desactivarDto.usuarioCrmId).FirstOrDefault();
 
             if (user == null)
                 throw new BadRequestException("No se encontró el usuario a eliminar");
@@ -91,7 +89,7 @@ namespace api.Services
             var sinAsignarUserId = usersRepo
                 .Where(x => x.nombre == "Sin" && x.apellido == "Asignar")
                 .Select(x => x.idCRM)
-                .SingleOrDefault();
+                .FirstOrDefault();
 
             if (sinAsignarUserId == null)
                 throw new BadRequestException(
@@ -339,16 +337,18 @@ namespace api.Services
             return _unitOfWork
                 .GetRepository<User>()
                 .GetAll()
-                .SingleOrDefault(x => x.idCRM == id.ToString());
+                .FirstOrDefault(x => x.idCRM == id.ToString());
         }
 
         public async Task EditUser(string usuarioCrmId, UserDto userDto)
         {
             var (rolSelected, empresasSelected) = ValidarUsuario(userDto, usuarioCrmId);
-            var usuarioEditarDb = _unitOfWork
-                .GetRepository<User>()
-                .GetAll()
-                .SingleOrDefault(x => x.idCRM == usuarioCrmId) ?? throw new NotFoundException("Usuario no encontrado");
+            var usuarioEditarDb =
+                _unitOfWork
+                    .GetRepository<User>()
+                    .GetAll()
+                    .FirstOrDefault(x => x.idCRM == usuarioCrmId)
+                ?? throw new NotFoundException("Usuario no encontrado");
 
             // no puedo modificar a un usuario con jerarquia igual o mayor
             var esInferior = _userIdentityService.EsInferiorEnRoles(usuarioEditarDb);
@@ -474,10 +474,7 @@ namespace api.Services
                 throw new BadRequestException("El correo electrónico ya está en uso");
             // el rolId tiene que ser un rol válido
             var rolSelected =
-                _unitOfWork
-                    .GetRepository<Rol>()
-                    .GetAll()
-                    .SingleOrDefault(x => x.id == userDto.RolId)
+                _unitOfWork.GetRepository<Rol>().GetAll().FirstOrDefault(x => x.id == userDto.RolId)
                 ?? throw new BadRequestException("El rol seleccionado no es válido");
             // las empresasIdsCrm tienen que ser empresas válidas
             var empresasSelected = _unitOfWork
@@ -634,7 +631,9 @@ namespace api.Services
             var usuarioEmpresasRepo = _unitOfWork.GetRepository<UsuariosEmpresas>();
 
             // Empresas actuales del usuario
-            var empresasActuales = usuarioEditarDb.EmpresasAsignaciones.Select(e => e.empresaId).ToList();
+            var empresasActuales = usuarioEditarDb
+                .EmpresasAsignaciones.Select(e => e.empresaId)
+                .ToList();
 
             // Empresas deseadas
             var empresasDeseadas = empresasSelected.Select(e => e.id).ToList();
@@ -643,7 +642,9 @@ namespace api.Services
             var empresasAEliminar = empresasActuales.Except(empresasDeseadas).ToList();
             foreach (var empresaId in empresasAEliminar)
             {
-                var empresaAEliminar = usuarioEditarDb.EmpresasAsignaciones.SingleOrDefault(e => e.empresaId == empresaId);
+                var empresaAEliminar = usuarioEditarDb.EmpresasAsignaciones.FirstOrDefault(e =>
+                    e.empresaId == empresaId
+                );
                 if (empresaAEliminar != null)
                 {
                     usuarioEmpresasRepo.Delete(empresaAEliminar);
@@ -654,7 +655,9 @@ namespace api.Services
             var empresasAAgregar = empresasDeseadas.Except(empresasActuales).ToList();
             foreach (var empresaId in empresasAAgregar)
             {
-                usuarioEditarDb.EmpresasAsignaciones.Add(new UsuariosEmpresas { empresaId = empresaId });
+                usuarioEditarDb.EmpresasAsignaciones.Add(
+                    new UsuariosEmpresas { empresaId = empresaId }
+                );
             }
         }
 
@@ -663,12 +666,12 @@ namespace api.Services
             var usuariosRolesRepo = _unitOfWork.GetRepository<UsuariosRoles>();
 
             // Obtener rol actual del usuario
-            var rolActual = usuarioEditarDb.Roles.Single();
+            var rolActual = usuarioEditarDb.Roles.First();
 
             if (rolActual.rolId != rolSelected.id)
             {
                 // Eliminar rol actual
-                var rolAEliminar = usuarioEditarDb.Roles.Single();
+                var rolAEliminar = usuarioEditarDb.Roles.First();
                 usuariosRolesRepo.Delete(rolAEliminar);
 
                 // Agregar nuevo rol
