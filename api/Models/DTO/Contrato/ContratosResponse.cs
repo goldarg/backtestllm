@@ -22,6 +22,8 @@ public class ContratoMarcoDto
 {
     public string? id { get; set; }
 
+    public string Estado { get; set; }
+
     [JsonProperty("Tipo_de_Contrato")]
     public string? TipoDeContrato { get; set; }
 

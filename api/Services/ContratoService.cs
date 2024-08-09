@@ -34,7 +34,7 @@ public class ContratoService : IContratoService
             "((Tipo_de_Contrato:equals:Renting)or(Tipo_de_Contrato:equals:Fleet Management)or(Tipo_de_Contrato:equals:Alquiler Corporativo)or(Tipo_de_Contrato:equals:Telemetria))";
         var criteria = $"{tipoContratoCriteria}{accountCriteria}";
         var fields =
-            "id,Cuenta,Tipo_de_Contrato,Plazo_Propuesta,Servicios,Gesti_n,Infracciones_Servicio,Seguro,Telemetr_a_Servicio";
+            "id,Cuenta,Tipo_de_Contrato,Plazo_Propuesta,Servicios,Gesti_n,Infracciones_Servicio,Seguro,Telemetr_a_Servicio,Estado";
         var uri = new StringBuilder($"crm/v2/Contratos/search?criteria={criteria}&fields={fields}");
 
         var responseString = await _crmService.Get(uri.ToString());
