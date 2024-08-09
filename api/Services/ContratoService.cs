@@ -57,20 +57,20 @@ public class ContratoService : IContratoService
             .Where(c => !string.IsNullOrEmpty(c.id))
             .ToDictionary(c => c.id ?? "");
 
-        var tRenting = GetContratosInternos<ContratoRentingDto>(
+        var tRenting = GetModulosIntermedios<ContratoRentingDto>(
             "crm/v2/Renting?fields=id,Fecha_inicio_renting,Fecha_fin_de_renting,Canon,Dominio,Fecha_de_extensi_n_del_Renting,Nombre_del_contrato",
             contratosMarcoDict
         );
-        var tServicioRda = GetContratosInternos<ContratoServicioRdaDto>(
+        var tServicioRda = GetModulosIntermedios<ContratoServicioRdaDto>(
             "crm/v2/Servicios_RDA?fields=id,Inicio_de_servicio,Fin_de_servicio,Dominio,Fee_por_auto,Contrato",
             contratosMarcoDict
         );
-        var tAlquiler = GetContratosInternos<ContratoAlquilerDto>(
+        var tAlquiler = GetModulosIntermedios<ContratoAlquilerDto>(
             "crm/v2/Alquileres?fields=id,Contrato,Fecha_de_Entrega,Fecha_de_Devolucion,Dominio_Alquiler",
             contratosMarcoDict
         );
-        var tTelemetria = GetContratosInternos<ContratoTelemetriaDto>(
-            "crm/v2/Telemetrias?fields=id,Nombre_del_contrato,Fecha,Fecha_de_Fin,Dominio_vehiculo,Fee_por_auto",
+        var tTelemetria = GetModulosIntermedios<ContratoTelemetriaDto>(
+            "crm/v2/Telemetrias/search?criteria=(Tipo_de_Contrato:equals:Telemetria)&fields=id,Nombre_del_contrato,Fecha,Fecha_de_Fin,Dominio_vehiculo,Fee_por_auto",
             contratosMarcoDict
         );
 
@@ -89,7 +89,7 @@ public class ContratoService : IContratoService
         );
     }
 
-    private async Task<List<T>> GetContratosInternos<T>(
+    private async Task<List<T>> GetModulosIntermedios<T>(
         string endpoint,
         Dictionary<string, ContratoMarcoDto> contratosMarcoDict
     )
