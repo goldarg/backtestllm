@@ -5,20 +5,12 @@ using Newtonsoft.Json;
 
 namespace api.Services;
 
-public class ContratoService : IContratoService
+public class ContratoService(IUserIdentityService identityService, CRMService crmService)
+    : IContratoService
 {
-    private readonly IUserIdentityService _identityService;
-    private readonly CRMService _crmService;
-
-    public ContratoService(IUserIdentityService identityService, CRMService crmService)
-    {
-        _identityService = identityService;
-        _crmService = crmService;
-    }
-
     public async Task<ContratosResponse?> GetContratos()
     {
-        var empresasDisponibles = _identityService.ListarEmpresasDelUsuario();
+        var empresasDisponibles = identityService.ListarEmpresasDelUsuario();
 
         var accountCriteria = string.Empty;
         if (empresasDisponibles.Length <= 10)
@@ -37,7 +29,7 @@ public class ContratoService : IContratoService
             "id,Cuenta,Tipo_de_Contrato,Plazo_Propuesta,Servicios,Gesti_n,Infracciones_Servicio,Seguro,Telemetr_a_Servicio,Estado";
         var uri = new StringBuilder($"crm/v2/Contratos/search?criteria={criteria}&fields={fields}");
 
-        var responseString = await _crmService.Get(uri.ToString());
+        var responseString = await crmService.Get(uri.ToString());
 
         // Deserializar el JSON directamente a List<ContratoResponse>
         var contratosMarcosDto = JsonConvert.DeserializeObject<List<ContratoMarcoDto>>(
@@ -95,7 +87,7 @@ public class ContratoService : IContratoService
     )
         where T : ContratoBaseDto
     {
-        var json = await _crmService.Get(endpoint);
+        var json = await crmService.Get(endpoint);
         var dtos = JsonConvert.DeserializeObject<List<T>>(json);
         if (dtos == null)
             return new List<T>();
