@@ -2,7 +2,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using api.Connected_Services;
 using api.DataAccess;
-using api.Logic;
 using api.Middleware;
 using api.Models.Entities;
 using api.Services;
@@ -19,11 +18,28 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<AccessTokenHandler>();
 
 builder.Services.AddHttpContextAccessor();
+
+//Cliente para consultas a Zoho CRM
 builder.Services.AddHttpClient(
     "CrmHttpClient",
     httpClient =>
     {
         httpClient.BaseAddress = new Uri("https://www.zohoapis.com/");
+
+        httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Bearer",
+                AccessTokenHandler.Instance.AccessToken
+            );
+    }
+);
+
+//Cliente para consultas a Zoho Desk
+builder.Services.AddHttpClient(
+    "TiqueteraHttpClient",
+    httpClient =>
+    {
+        httpClient.BaseAddress = new Uri("https://desk.zoho.com/");
 
         httpClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue(
@@ -42,8 +58,8 @@ builder.Services.AddDbContext<RdaDbContext>(options =>
 builder.Services.AddScoped<IRdaUnitOfWork, RdaUnitOfWork>();
 builder.Services.AddScoped<IRepositoryFactory, RepositoryFactory>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<VehiculosLogica>();
 builder.Services.AddScoped<CRMService>();
+builder.Services.AddScoped<TiqueteraService>();
 builder.Services.AddScoped<IUserIdentityService, UserIdentityService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmpresaService, EmpresaService>();
@@ -52,6 +68,7 @@ builder.Services.AddScoped<IRolService, RolService>();
 builder.Services.AddScoped<IVehiculoService, VehiculoService>();
 builder.Services.AddScoped<IClaimsProvider, HttpContextClaimsProvider>();
 builder.Services.AddScoped<IActividadUsuarioService, ActividadUsuarioService>();
+builder.Services.AddScoped<ITicketService, TicketService>();
 
 ///// Adds Microsoft Identity platform (Azure AD B2C) support to protect this Api
 builder
