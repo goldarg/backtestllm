@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using api.Connected_Services;
@@ -139,7 +138,6 @@ public class VehiculoService(
                 + "Fecha_de_patentamiento,Compa_a_de_seguro,Franquicia,Poliza_N,Vencimiento_Matafuego,"
                 + "Vencimiento_de_Ruta,Padron,Vto_Cedula_Verde,Ultimo_Odometro_KM,Fecha_siguiente_VTV,Pa_s,Tipo_cobertura"
         );
-        // TODO ACA SE PODRIAN HACER LAS DOS LLAMADAS EN PARALELO get vehiculos y get contratos
         var getVehiculosTask = _crmService.Get(uri.ToString());
         var getContratosTask = _contratoService.GetContratos();
         await Task.WhenAll(getVehiculosTask, getContratosTask);
@@ -165,6 +163,13 @@ public class VehiculoService(
             contratos.ContratosServicioRda,
             vehiculosRespuesta
         );
+
+        // si es conductor filtrar vehiculos
+        var usuario = _identityService.GetUsuarioDb();
+        if (_identityService.UsuarioPoseeRol("CONDUCTOR"))
+            vehiculosRespuesta = vehiculosRespuesta
+                .Where(v => v.Conductor?.id == usuario.idCRM)
+                .ToList();
 
         return vehiculosRespuesta;
     }

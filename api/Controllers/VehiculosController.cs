@@ -24,7 +24,7 @@ public class VehiculosController : ControllerBase
     ) => Ok(await _vehiculoService.AsignarVehiculo(asignarVehiculoDto));
 
     [HttpGet]
-    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA,CONDUCTOR")]
     public async Task<IActionResult> GetVehiculos() => Ok(await _vehiculoService.GetVehiculos());
 
     [HttpGet("HistorialOperaciones")]

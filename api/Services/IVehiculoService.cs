@@ -8,6 +8,10 @@ namespace api.Services
     {
         Task<string?> AsignarVehiculo(AsignarVehiculoDto asignarVehiculoDto);
         Task<List<VehiculoDto>?> GetVehiculos();
-        Task<List<OperacionesVehiculoDto>> HistorialOperaciones(string dominio, string tipoContrato);
+
+        Task<List<OperacionesVehiculoDto>> HistorialOperaciones(
+            string dominio,
+            string tipoContrato
+        );
     }
 }
