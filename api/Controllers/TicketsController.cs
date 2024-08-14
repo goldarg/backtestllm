@@ -1,5 +1,7 @@
 using api.Models.DTO.Vehiculo;
+using api.Models.Entities;
 using api.Services;
+using Azure.Security.KeyVault.Certificates;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +18,21 @@ public class TicketsController : ControllerBase
         _ticketService = ticketService;
     }
 
+    [HttpPost]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
+    public async Task<IActionResult> CrearTicket(Ticket ticket)
+    {
+        return Ok(_ticketService.CrearTicket(ticket));
+    }
+
+    [HttpGet("GetOrdenesDeTrabajo")]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA,CONDUCTOR")]
+    public async Task<IActionResult> GetOrdenesDeTrabajo()
+    {
+        return Ok(_ticketService.GetOrdenesDeTrabajo());
+    }
+
     [HttpGet]
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
-    public async Task<IActionResult> GetVehiculos() => Ok(await _ticketService.GetTickets());
+    public async Task<IActionResult> GetTickets() => Ok(await _ticketService.GetTickets());
 }

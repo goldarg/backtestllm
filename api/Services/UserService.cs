@@ -204,7 +204,7 @@ namespace api.Services
                     .Where(u =>
                         u.Roles.Any(reg => reg.Rol.nombreRol == "CONDUCTOR")
                         && u.EmpresasAsignaciones.Any(ea =>
-                            empresasDisponibles.Contains(ea.Empresa.idCRM)
+                            empresasDisponibles.Contains(ea.Empresa.idCRM) && u.estado != "Inactivo"
                         )
                     )
                     .Select(x => new ConductorEmpresaDto
