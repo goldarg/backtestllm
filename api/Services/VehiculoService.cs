@@ -39,8 +39,10 @@ public class VehiculoService(
         }
 
         //Busco el conductor que ahora voy a sacar, para agregarle el log mas adelante
+        var tipoContrato = asignarVehiculoDto.GetTipoContratoCrm();
+
         var uri = new StringBuilder(
-            $"crm/v2/{asignarVehiculoDto.tipoContrato}/{asignarVehiculoDto.idContratoInterno}?fields=Conductor"
+            $"crm/v2/{tipoContrato}/{asignarVehiculoDto.idContratoInterno}?fields=Conductor"
         );
         var json = await _crmService.Get(uri.ToString());
         var conductorViejoCrm = JsonSerializer.Deserialize<List<BuscarConductorDto>>(json);
@@ -49,17 +51,8 @@ public class VehiculoService(
             conductorViejoCrm.Count() > 0 ? conductorViejoCrm.First().Conductor.id : null;
 
         //Busco y actualizo según el tipo de contrato
-        string targetModule;
-        if (asignarVehiculoDto.tipoContrato == "Fleet Management")
-            asignarVehiculoDto.tipoContrato = "Servicios_RDA";
-        else if (asignarVehiculoDto.tipoContrato == "Renting")
-            asignarVehiculoDto.tipoContrato = "Renting";
-        else if (asignarVehiculoDto.tipoContrato == "Alquiler Corporativo")
-            asignarVehiculoDto.tipoContrato = "Alquileres";
-        else
-            throw new BadRequestException("No se pudo determinar el tipo de contrato del vehículo");
 
-        uri = new StringBuilder($"crm/v2/{asignarVehiculoDto.tipoContrato}/upsert");
+        uri = new StringBuilder($"crm/v2/{tipoContrato}/upsert");
 
         //Armo el objeto para enviar al CRM, y devuelvo la respuesta
         var jsonObject = new
