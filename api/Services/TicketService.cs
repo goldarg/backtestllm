@@ -53,11 +53,11 @@ namespace api.Services
                 "Abierta"
             };
 
-            //Traigo las OT
+            //Traigo datos del usuario
             var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario();
-            if (empresasDisponibles.Count() == 0)
-                return null;
+            var userCrmId = _userIdentityService.UserGetCrmId();
 
+            //Busco las OT
             var uri = new StringBuilder(
                 "crm/v2/Purchase_Orders?fields=Tracking_Number,PO_Number,"
                     + "Estado_OT_Mirai_fleet,Clasificaci_n,Vehiculo,Cliente,Product_Details,Aprobador,"
@@ -67,12 +67,26 @@ namespace api.Services
             var json = await _crmService.Get(uri.ToString());
             var ordenesTrabajo = JsonConvert.DeserializeObject<List<OrdenTrabajoDto>>(json);
 
-            ordenesTrabajo = ordenesTrabajo
-                .Where(x =>
-                    estadosValidos.Contains(x.estadoOT)
-                    && empresasDisponibles.Contains(x.Cliente?.id)
-                )
-                .ToList();
+            //RDA puede ver todo sin filtrado
+            if (!_userIdentityService.UsuarioPoseeRol("RDA"))
+            {
+                //Si es conductor, solamente puede ver los propios
+                if (_userIdentityService.UsuarioPoseeRol("CONDUCTOR"))
+                {
+                    ordenesTrabajo = ordenesTrabajo
+                        .Where(x => x.conductor.id == userCrmId)
+                        .ToList();
+                }
+                else //Admin y SuperAdmin filtran segun las empresas que tengan asignadas, aunque fueran todas
+                {
+                    ordenesTrabajo = ordenesTrabajo
+                        .Where(x =>
+                            estadosValidos.Contains(x.estadoOT)
+                            && empresasDisponibles.Contains(x.Cliente?.id)
+                        )
+                        .ToList();
+                }
+            }
 
             return ordenesTrabajo;
         }

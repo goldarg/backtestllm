@@ -80,6 +80,23 @@ namespace api.Services
                 .Any(x => x == rol);
         }
 
+        public string? UserGetCrmId()
+        {
+            var claimIdentity = _claimsProvider.ClaimsPrincipal.Identity as ClaimsIdentity;
+
+            if (claimIdentity == null)
+                throw new BadRequestException("Error al obtener la identidad del usuario");
+
+            var crmId = _unitOfWork
+                .GetRepository<User>()
+                .GetAll()
+                .Where(x => x.userName == claimIdentity.Name)
+                .Select(x => x.idCRM)
+                .FirstOrDefault();
+
+            return crmId;
+        }
+
         //Devuelve si el usuario tiene o no el claim al CrmId de la empresa
         public bool UsuarioPoseeEmpresa(string empresa)
         {
