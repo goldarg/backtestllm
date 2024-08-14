@@ -27,8 +27,6 @@ public class VehiculoService(
 
         var httpClient = _httpClientFactory.CreateClient("CrmHttpClient");
 
-        ValidateAsignarVehiculo(asignarVehiculoDto, httpClient);
-
         if (asignarVehiculoDto.usuarioId == null)
         {
             asignarVehiculoDto.usuarioId = userRepository
@@ -37,6 +35,7 @@ public class VehiculoService(
                 .First()
                 .idCRM;
         }
+        ValidateAsignarVehiculo(asignarVehiculoDto, httpClient);
 
         //Busco el conductor que ahora voy a sacar, para agregarle el log mas adelante
         var tipoContrato = asignarVehiculoDto.GetTipoContratoCrm();

@@ -54,15 +54,15 @@ public class ContratoService(IUserIdentityService identityService, CRMService cr
             contratosMarcoDict
         );
         var tServicioRda = GetModulosIntermedios<ContratoServicioRdaDto>(
-            "crm/v2/Servicios_RDA?fields=id,Inicio_de_servicio,Fin_de_servicio,Dominio,Fee_por_auto,Contrato",
+            "crm/v2/Servicios_RDA?fields=id,Inicio_de_servicio,Fin_de_servicio,Dominio,Fee_por_auto,Contrato,Conductor,Centro_de_costos,Sector",
             contratosMarcoDict
         );
         var tAlquiler = GetModulosIntermedios<ContratoAlquilerDto>(
-            "crm/v2/Alquileres?fields=id,Contrato,Fecha_de_Entrega,Fecha_de_Devolucion,Dominio_Alquiler",
+            "crm/v2/Alquileres?fields=id,Contrato,Fecha_de_Entrega,Fecha_de_Devolucion,Dominio_Alquiler,Conductor,Centro_de_costos,Sector",
             contratosMarcoDict
         );
         var tTelemetria = GetModulosIntermedios<ContratoTelemetriaDto>(
-            "crm/v2/Telemetrias/search?criteria=(Tipo_de_Contrato:equals:Telemetria)&fields=id,Nombre_del_contrato,Fecha,Fecha_de_Fin,Dominio_vehiculo,Fee_por_auto",
+            "crm/v2/Telemetrias/search?criteria=(Tipo_de_Contrato:equals:Telemetria)&fields=id,Nombre_del_contrato,Fecha,Fecha_de_Fin,Dominio_vehiculo,Fee_por_auto,Conductor,Centro_de_costos,Sector",
             contratosMarcoDict
         );
 
