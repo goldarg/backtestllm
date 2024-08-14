@@ -20,14 +20,14 @@ public class TicketsController : ControllerBase
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
     public async Task<IActionResult> CrearTicket(Ticket ticket)
     {
-        return Ok(_ticketService.CrearTicket(ticket));
+        return Ok(await _ticketService.CrearTicket(ticket));
     }
 
     [HttpGet("GetOrdenesDeTrabajo")]
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA,CONDUCTOR")]
     public async Task<IActionResult> GetOrdenesDeTrabajo()
     {
-        return Ok(_ticketService.GetOrdenesDeTrabajo());
+        return Ok(await _ticketService.GetOrdenesDeTrabajo());
     }
 
     [HttpGet]
