@@ -9,7 +9,7 @@ namespace api.Controllers;
 public class EmpresasController : ControllerBase
 {
     private readonly IEmpresaService _empresaService;
-    
+
     public EmpresasController(IEmpresaService empresaService)
     {
         _empresaService = empresaService;
@@ -17,9 +17,7 @@ public class EmpresasController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]
-    public IActionResult GetAll()
-        => Ok(_empresaService.GetAll());
-
+    public IActionResult GetAll() => Ok(_empresaService.GetAll());
 
     [HttpGet("{id}")]
     [Authorize(Roles = "RDA,SUPERADMIN,ADMIN")]

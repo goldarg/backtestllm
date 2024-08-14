@@ -59,12 +59,12 @@ namespace api.Services
             if (claimIdentity == null)
                 return Array.Empty<string>();
 
-            var roles = _claimsProvider
+            var empresas = _claimsProvider
                 .ClaimsPrincipal.Claims.Where(x => x.Type == "empresas")
                 .Select(x => x.Value)
                 .ToArray();
 
-            return roles;
+            return empresas;
         }
 
         //Devuelve si el usuario tiene o no el claim del nombreRol

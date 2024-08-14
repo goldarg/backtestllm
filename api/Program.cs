@@ -1,4 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using api.Connected_Services;
 using api.DataAccess;
