@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace api.Models.DTO.Operaciones
@@ -44,14 +40,22 @@ namespace api.Models.DTO.Operaciones
 
     public class DetalleIntervencionDto
     {
+        [JsonProperty("product")]
         public ProductDto product { get; set; }
     }
 
     public class ProductDto
     {
+        [JsonProperty("Product_Code")]
         public string? Product_Code { get; set; }
+
+        [JsonProperty("Currency")]
         public string? Currency { get; set; }
+
+        [JsonProperty("name")]
         public string? name { get; set; }
+
+        [JsonProperty("id")]
         public string? id { get; set; }
     }
 }

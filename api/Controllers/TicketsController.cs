@@ -1,7 +1,5 @@
-using api.Models.DTO.Vehiculo;
 using api.Models.Entities;
 using api.Services;
-using Azure.Security.KeyVault.Certificates;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

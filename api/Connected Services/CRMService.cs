@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace api.Connected_Services
 {
@@ -16,9 +16,7 @@ namespace api.Connected_Services
             var response = await _httpClient.GetAsync(uri);
             var json = await response.Content.ReadAsStringAsync();
 
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, };
-
-            var jsonObject = JsonSerializer.Deserialize<Dictionary<string, object>>(json, options);
+            var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
             return jsonObject["data"].ToString();
         }
     }

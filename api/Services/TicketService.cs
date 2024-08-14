@@ -67,9 +67,9 @@ namespace api.Services
             var json = await _crmService.Get(uri.ToString());
             var ordenesTrabajo = JsonConvert.DeserializeObject<List<OrdenTrabajoDto>>(json);
 
-            ordenesTrabajo = ordenesTrabajo
-                .Where(x => estadosValidos.Contains(x.estadoOT))
-                .ToList();
+            // ordenesTrabajo = ordenesTrabajo
+            //     .Where(x => estadosValidos.Contains(x.estadoOT))
+            //     .ToList();
 
             return ordenesTrabajo;
         }
