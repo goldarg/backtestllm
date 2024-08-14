@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Models.DTO.Tiquetera
+namespace api.Models.Entities
 {
-    public class TicketDto
+    public class Ticket
     {
         public int id { get; set; }
         public string? nombreCompleto { get; set; }
@@ -21,6 +21,9 @@ namespace api.Models.DTO.Tiquetera
         public int odometro { get; set; }
         public DateTime turnoOpcion1 { get; set; }
         public DateTime turnoOpcion2 { get; set; }
-        public string? idCRM { get; set; }
+        public string? idTiquetera { get; set; }
+        public string? numeroTicket { get; set; }
+
+        public virtual Empresa? Empresa { get; set; }
     }
 }
