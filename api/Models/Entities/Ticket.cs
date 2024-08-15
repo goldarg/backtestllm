@@ -23,7 +23,9 @@ namespace api.Models.Entities
         public DateTime turnoOpcion2 { get; set; }
         public string? idTiquetera { get; set; }
         public string? numeroTicket { get; set; }
+        public int solicitanteId { get; set; }
 
         public virtual Empresa? Empresa { get; set; }
+        public virtual User? Solicitante { get; set; }
     }
 }
