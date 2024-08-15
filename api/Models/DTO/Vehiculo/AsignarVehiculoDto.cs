@@ -18,6 +18,8 @@ public class AsignarVehiculoDto
             return "Renting";
         else if (tipoContrato == "Alquiler Corporativo")
             return "Alquileres";
+        else if (tipoContrato == "Telemetria")
+            return "Telemetrias";
         else
             throw new BadRequestException("No se pudo determinar el tipo de contrato del vehículo");
     }
