@@ -79,7 +79,7 @@ namespace api.Services
                 throw new BadRequestException("No se encontró el usuario a eliminar");
 
             var targetMaxJerarquia =
-                user.Roles.Count() > 0 ? user.Roles?.Max(x => x.Rol.jerarquia) : -1;
+                user.Roles.Count() > 0 ? user.Roles.Max(x => x.Rol.jerarquia) : -1;
             if (targetMaxJerarquia >= maxJerarquiaRequest)
                 throw new BadRequestException("No se poseen permisos para modificar este usuario");
 

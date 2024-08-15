@@ -167,8 +167,6 @@ namespace api.Services
         public bool EsInferiorEnRoles(User user)
         {
             var rolesInferiores = ListarRolesInferiores();
-            if (user.Roles == null)
-                return true;
             // si para cada rol del usuario,hay un rolInferior que sea mayor o igual a ese rol, entonces el usuario es inferior
             bool esInferior = user.Roles.All(ur =>
                 rolesInferiores.Any(ri => ur.Rol?.jerarquia <= ri.jerarquia)
