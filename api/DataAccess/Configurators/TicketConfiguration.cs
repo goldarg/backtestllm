@@ -118,9 +118,21 @@ namespace api.DataAccess.Configurators
                 .HasMaxLength(50);
 
             builder
+                .Property(x => x.solicitanteId)
+                .IsRequired()
+                .HasColumnName("solicitanteId")
+                .HasColumnType("int");
+
+            builder
                 .HasOne(x => x.Empresa)
                 .WithMany()
                 .HasForeignKey(z => z.empresaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder
+                .HasOne(x => x.Solicitante)
+                .WithMany()
+                .HasForeignKey(z => z.solicitanteId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
