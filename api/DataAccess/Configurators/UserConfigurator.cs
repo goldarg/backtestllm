@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace api.DataAccess.Configurators;
 
@@ -33,6 +28,12 @@ public class UserConfigurator
             .Property(x => x.apellido)
             .IsRequired()
             .HasColumnName("apellido")
+            .HasColumnType("nvarchar")
+            .HasMaxLength(100);
+        builder
+            .Property(x => x.telefono)
+            .IsRequired()
+            .HasColumnName("telefono")
             .HasColumnType("nvarchar")
             .HasMaxLength(100);
         builder

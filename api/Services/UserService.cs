@@ -53,6 +53,7 @@ namespace api.Services
                         userName = userDto.Email,
                         nombre = userDto.Nombre,
                         apellido = userDto.Apellido,
+                        telefono = userDto.Telefono,
                         estado = EstadosUsuario.activo,
                         isRDA = true,
                         idCRM = createdId,
@@ -362,6 +363,7 @@ namespace api.Services
             usuarioEditarDb.nombre = userDto.Nombre;
             usuarioEditarDb.apellido = userDto.Apellido;
             usuarioEditarDb.userName = userDto.Email;
+            usuarioEditarDb.telefono = userDto.Telefono;
 
             ActualizarRoles(usuarioEditarDb, rolSelected);
             ActualizarEmpresas(usuarioEditarDb, empresasSelected);
@@ -387,6 +389,10 @@ namespace api.Services
 
             // Actualizar el teléfono en el CRM
             await ActualizarTelefonoCRM(user.idCRM, userDto.Telefono);
+
+            user.telefono = userDto.Telefono;
+            _unitOfWork.GetRepository<User>().Update(user);
+            _unitOfWork.SaveChanges();
 
             _actividadUsuarioService.CrearActividadDb(
                 user.id,
