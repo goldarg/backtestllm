@@ -11,6 +11,7 @@ public class User
 
     public string? nombre { get; set; }
     public string? apellido { get; set; }
+    public string? telefono { get; set; }
     public string? estado { get; set; }
     public bool isRDA { get; set; }
     public string? idCRM { get; set; }
