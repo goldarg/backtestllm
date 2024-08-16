@@ -11,10 +11,27 @@ namespace api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IUserIdentityService _userIdentityService;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, IUserIdentityService userIdentityService)
     {
         _userService = userService;
+        _userIdentityService = userIdentityService;
+    }
+
+    [HttpGet("actual")]
+    [Authorize]
+    public IActionResult GetUsuarioActual()
+    {
+        var user = _userIdentityService.GetUsuarioDb();
+        return Ok(
+            new
+            {
+                Email = user.userName,
+                Nombre = user.nombre,
+                Apellido = user.apellido,
+            }
+        );
     }
 
     [HttpGet]
