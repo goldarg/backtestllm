@@ -30,6 +30,7 @@ public class UsersController : ControllerBase
                 Email = user.userName,
                 Nombre = user.nombre,
                 Apellido = user.apellido,
+                Telefono = user.telefono,
             }
         );
     }
