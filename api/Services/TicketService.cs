@@ -1,9 +1,11 @@
-using System.Text;
+﻿using System.Text;
 using api.Connected_Services;
 using api.DataAccess;
 using api.Models.DTO.Operaciones;
+using api.Models.DTO.Tiquetera;
 using api.Models.Entities;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace api.Services
 {
@@ -27,16 +29,93 @@ namespace api.Services
             _httpClientFactory = httpClientFactory;
         }
 
-        public Task<Ticket> CrearTicket(Ticket ticket)
+        public async Task CrearTicket(TicketDto ticketDto)
         {
-            //Creacion en CRM
-            throw new NotImplementedException();
+            var idTiquetera = await CrearTicketTiquetera(ticketDto);
+            // Aquí puedes hacer lo que necesites con el valor de "id"
 
-            //Creacion Azure
-            ticket.idTiquetera = "El id que vaya venido";
-            ticket.numeroTicket = "El ticketNumber que vaya venido";
-            _unitOfWork.GetRepository<Ticket>().Insert(ticket);
-            _unitOfWork.SaveChanges();
+            var ticket = new Ticket
+            {
+                // TODO validar, esto no deberia ser necesario almacenar
+                nombreCompleto = "asdf",
+                email = ticketDto.email,
+                telefono = ticketDto.telefono,
+                empresaId = ticketDto.empresaId,
+                // TODO validar, no necesitariamos almacenar info extra como el dominioId ?
+                dominio = ticketDto.dominio,
+                // TODO aca para que almacenamos el departamento, para mostrarlo?, que conviene realmente guardar el id o el nombre?
+                departamento = ticketDto.departamentoId,
+                tipoOperacion = ticketDto.tipoOperacion,
+                asunto = GenerarAsunto(ticketDto),
+                zona = ticketDto.zona,
+                descripcion = ticketDto.descripcion,
+                odometro = ticketDto.odometro,
+                turnoOpcion1 = ticketDto.turnoOpcion1,
+                turnoOpcion2 = ticketDto.turnoOpcion2,
+                idTiquetera = idTiquetera,
+                // TODO pendiente ver de donde sale esto
+                numeroTicket = "asdfasdf",
+                // TODO el id es el de azure o del CRM ?
+                solicitanteId = _userIdentityService.GetUsuarioDb().id,
+            };
+            ////Creacion Azure
+            //ticket.idTiquetera = "El id que vaya venido";
+            //ticket.numeroTicket = "El ticketNumber que vaya venido";
+            //_unitOfWork.GetRepository<Ticket>().Insert(ticket);
+            //_unitOfWork.SaveChanges();
+        }
+
+        private async Task<string> CrearTicketTiquetera(TicketDto ticketDto)
+        {
+            var ticketTiquetera = new
+            {
+                email = ticketDto.email,
+                phone = ticketDto.telefono,
+                // asunto Dominio + Empresa + Tipo de operación
+                subject = GenerarAsunto(ticketDto),
+                departmentId = ticketDto.departamentoId, //"474115000172756029", // (Desarrollo de Red)
+                // tipo operacion
+                classification = ticketDto.tipoOperacion,
+                contact = new { email = ticketDto.email },
+                accountId = ticketDto.empresaId,
+                cf_dominio = ticketDto.dominio,
+                cf_zona = ticketDto.zona,
+                cf_odometro = ticketDto.odometro,
+                cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
+                cf_turno_alternativa_2 = ticketDto.turnoOpcion2,
+                description = ticketDto.descripcion
+            };
+            var httpClientTiquetera = _httpClientFactory.CreateClient("TiqueteraHttpClient");
+
+            string jsonTicket = JsonConvert.SerializeObject(ticketTiquetera);
+            var content = new StringContent(
+                jsonTicket,
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await httpClientTiquetera.PostAsync("tickets", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            var jsonResponse = JObject.Parse(responseContent);
+
+            if (!jsonResponse.ContainsKey("id"))
+                throw new Exception("No se pudo crear el ticket en Tiquetera.");
+
+            var idValue = jsonResponse["id"]?.ToString();
+            return idValue
+                ?? throw new Exception(
+                    "La propiedad 'id' no se encontró o es nula en la respuesta."
+                );
+        }
+
+        private string GenerarAsunto(TicketDto ticketDto)
+        {
+            return ticketDto.dominio
+                + "-"
+                + ticketDto.empresaNombre
+                + "-"
+                + ticketDto.tipoOperacion;
         }
 
         public async Task<List<OrdenTrabajoDto>> GetOrdenesDeTrabajo()

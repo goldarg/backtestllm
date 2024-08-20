@@ -38,7 +38,7 @@ builder.Services.AddHttpClient(
     "TiqueteraHttpClient",
     httpClient =>
     {
-        httpClient.BaseAddress = new Uri("https://desk.zoho.com/");
+        httpClient.BaseAddress = new Uri("https://desk.zoho.com/api/v1/");
 
         httpClient.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue(

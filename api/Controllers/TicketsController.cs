@@ -1,4 +1,4 @@
-using api.Models.Entities;
+using api.Models.DTO.Tiquetera;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,9 +18,10 @@ public class TicketsController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
-    public async Task<IActionResult> CrearTicket(Ticket ticket)
+    public async Task<IActionResult> CrearTicket(TicketDto ticket)
     {
-        return Ok(await _ticketService.CrearTicket(ticket));
+        await _ticketService.CrearTicket(ticket);
+        return StatusCode(201);
     }
 
     [HttpGet("GetOrdenesDeTrabajo")]
