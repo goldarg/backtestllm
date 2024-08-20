@@ -37,7 +37,7 @@ public class AccessTokenHandler : DelegatingHandler
             { "client_secret", "bc061baaf6ca19fdb603e770c0213103cb06995d1c" },
             {
                 "refresh_token",
-                "1000.1bae8a39012a4bb685bba01a6f5902de.ca6eb69da123e4eaeb080c3c9b31d387"
+                "1000.e7e353e67b09ca05d8609fcec076184e.c6d32173b912d699a3c6d7feb159ec4d"
             },
             { "grant_type", "refresh_token" }
         };
