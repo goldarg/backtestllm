@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using api.Connected_Services;
 using api.DataAccess;
+using api.Exceptions;
 using api.Models.DTO;
 using api.Models.DTO.Operaciones;
 using api.Models.DTO.Tiquetera;
@@ -32,20 +33,26 @@ namespace api.Services
 
         public async Task CrearTicket(TicketDto ticketDto)
         {
-            var idTiquetera = await CrearTicketTiquetera(ticketDto);
-            // Aquí puedes hacer lo que necesites con el valor de "id"
+            // revisar si el usuario tiene asignada la empresa
+            var userDb = _userIdentityService.GetUsuarioDb();
+            var empresa = userDb
+                .EmpresasAsignaciones.Where(e =>
+                    e.Empresa != null && e.Empresa.idCRM == ticketDto.empresaCrmId
+                )
+                .Select(e => e.Empresa)
+                .FirstOrDefault();
+            if (empresa == null)
+                throw new BadRequestException(
+                    $"El usuario no tiene asignada la empresa con el idCRM {ticketDto.empresaCrmId}."
+                );
 
+            var (idTiquetera, ticketNumber) = await CrearTicketTiquetera(ticketDto);
             var ticket = new Ticket
             {
-                // TODO validar, esto no deberia ser necesario almacenar
-                nombreCompleto = "asdf",
-                email = ticketDto.email,
-                telefono = ticketDto.telefono,
-                empresaId = ticketDto.empresaId,
-                // TODO validar, no necesitariamos almacenar info extra como el dominioId ?
+                empresaId = empresa.id,
+                dominioCrmId = ticketDto.dominioCrmId,
                 dominio = ticketDto.dominio,
-                // TODO aca para que almacenamos el departamento, para mostrarlo?, que conviene realmente guardar el id o el nombre?
-                departamento = ticketDto.departamentoId,
+                departamentoCrmId = ticketDto.departamentoCrmId,
                 tipoOperacion = ticketDto.tipoOperacion,
                 asunto = GenerarAsunto(ticketDto),
                 zona = ticketDto.zona,
@@ -54,40 +61,37 @@ namespace api.Services
                 turnoOpcion1 = ticketDto.turnoOpcion1,
                 turnoOpcion2 = ticketDto.turnoOpcion2,
                 idTiquetera = idTiquetera,
-                // TODO pendiente ver de donde sale esto
-                numeroTicket = "asdfasdf",
-                // TODO el id es el de azure o del CRM ?
-                solicitanteId = _userIdentityService.GetUsuarioDb().id,
+                numeroTicket = ticketNumber,
+                solicitanteId = userDb.id,
             };
-            ////Creacion Azure
-            //ticket.idTiquetera = "El id que vaya venido";
-            //ticket.numeroTicket = "El ticketNumber que vaya venido";
-            //_unitOfWork.GetRepository<Ticket>().Insert(ticket);
-            //_unitOfWork.SaveChanges();
+
+            _unitOfWork.GetRepository<Ticket>().Insert(ticket);
+            _unitOfWork.SaveChanges();
         }
 
-        private async Task<string> CrearTicketTiquetera(TicketDto ticketDto)
+        private async Task<(string id, string ticketNumber)> CrearTicketTiquetera(
+            TicketDto ticketDto
+        )
         {
             var ticketTiquetera = new
             {
                 email = ticketDto.email,
                 phone = ticketDto.telefono,
-                // asunto Dominio + Empresa + Tipo de operación
                 subject = GenerarAsunto(ticketDto),
-                departmentId = ticketDto.departamentoId, //"474115000172756029", // (Desarrollo de Red)
-                // tipo operacion
+                departmentId = ticketDto.departamentoCrmId,
                 classification = ticketDto.tipoOperacion,
                 contact = new { email = ticketDto.email },
-                accountId = ticketDto.empresaId,
-                cf_dominio = ticketDto.dominio,
-                cf_zona = ticketDto.zona,
-                cf_odometro = ticketDto.odometro,
-                cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
-                cf_turno_alternativa_2 = ticketDto.turnoOpcion2,
+                accountId = ticketDto.empresaCrmId,
+                // TODO validar con daiana rda esto no existe en tiquetera
+                //cf_dominio = ticketDto.dominioCrmId,
+                //cf_zona = ticketDto.zona,
+                //cf_odometro = ticketDto.odometro,
+                //cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
+                //cf_turno_alternativa_2 = ticketDto.turnoOpcion2,
                 description = ticketDto.descripcion
             };
-            var httpClientTiquetera = _httpClientFactory.CreateClient("TiqueteraHttpClient");
 
+            var httpClientTiquetera = _httpClientFactory.CreateClient("TiqueteraHttpClient");
             string jsonTicket = JsonConvert.SerializeObject(ticketTiquetera);
             var content = new StringContent(
                 jsonTicket,
@@ -104,10 +108,16 @@ namespace api.Services
                 throw new Exception("No se pudo crear el ticket en Tiquetera.");
 
             var idValue = jsonResponse["id"]?.ToString();
-            return idValue
-                ?? throw new Exception(
-                    "La propiedad 'id' no se encontró o es nula en la respuesta."
+            var ticketNumber = jsonResponse["ticketNumber"]?.ToString();
+
+            if (idValue == null)
+                throw new Exception("La propiedad 'id' no se encontró o es nula en la respuesta.");
+            if (ticketNumber == null)
+                throw new Exception(
+                    "La propiedad 'ticketNumber' no se encontró o es nula en la respuesta."
                 );
+
+            return (idValue, ticketNumber);
         }
 
         private string GenerarAsunto(TicketDto ticketDto)
@@ -183,7 +193,7 @@ namespace api.Services
                 {
                     numeroTicket = x.numeroTicket,
                     tipoOperacion = x.tipoOperacion,
-                    dominio = new CRMRelatedObject { id = x.dominio, name = x.dominio },
+                    dominio = new CRMRelatedObject { id = x.dominioCrmId, name = x.dominio },
                     solicitante = new UserDtoResponse
                     {
                         id = x.Solicitante.idCRM,
