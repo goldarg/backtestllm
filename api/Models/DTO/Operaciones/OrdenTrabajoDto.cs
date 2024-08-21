@@ -39,6 +39,9 @@ namespace api.Models.DTO.Operaciones
 
         [JsonProperty("Status")]
         public string? estadoGeneral { get; set; }
+
+        [JsonProperty("Created_Time")]
+        public DateTime? fechaCreacion { get; set; }
     }
 
     public class DetalleIntervencionDto
