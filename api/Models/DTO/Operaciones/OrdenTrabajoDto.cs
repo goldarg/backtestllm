@@ -36,6 +36,9 @@ namespace api.Models.DTO.Operaciones
 
         [JsonProperty("Estado_de_presupuesto")]
         public string? presupuesto { get; set; }
+
+        [JsonProperty("Status")]
+        public string? estadoGeneral { get; set; }
     }
 
     public class DetalleIntervencionDto
