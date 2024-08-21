@@ -1,7 +1,9 @@
 using System.Text;
 using api.Connected_Services;
 using api.DataAccess;
+using api.Models.DTO;
 using api.Models.DTO.Operaciones;
+using api.Models.DTO.Tiquetera;
 using api.Models.Entities;
 using Newtonsoft.Json;
 
@@ -91,7 +93,7 @@ namespace api.Services
             return ordenesTrabajo;
         }
 
-        public async Task<List<Ticket>?> GetTickets()
+        public async Task<List<TicketDtoResponse>?> GetTickets()
         {
             var empresasUsuario = _userIdentityService.ListarEmpresasDelUsuario();
 
@@ -99,6 +101,18 @@ namespace api.Services
                 .GetRepository<Ticket>()
                 .GetAll()
                 .Where(x => empresasUsuario.Contains(x.Empresa.idCRM))
+                .Select(x => new TicketDtoResponse
+                {
+                    numeroTicket = x.numeroTicket,
+                    tipoOperacion = x.tipoOperacion,
+                    dominio = new CRMRelatedObject { id = x.dominio, name = x.dominio },
+                    solicitante = new UserDtoResponse
+                    {
+                        id = x.Solicitante.idCRM,
+                        first_name = x.Solicitante.nombre,
+                        last_name = x.Solicitante.apellido
+                    }
+                })
                 .ToList();
 
             return tickets;
