@@ -6,8 +6,8 @@ namespace api.Services
 {
     public interface ITicketService
     {
-        Task<List<Ticket>?> GetTickets();
-        Task CrearTicket(TicketDto ticket);
+        Task<List<TicketDtoResponse>?> GetTickets();
+        Task<Ticket> CrearTicket(Ticket ticket);
         Task<List<OrdenTrabajoDto>> GetOrdenesDeTrabajo();
     }
 }
