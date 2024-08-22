@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -18,31 +14,17 @@ namespace api.DataAccess.Configurators
             builder.Property(x => x.id).IsRequired().HasColumnName("id").HasColumnType("int");
 
             builder
-                .Property(x => x.nombreCompleto)
-                .IsRequired()
-                .HasColumnName("nombreCompleto")
-                .HasColumnType("nvarchar")
-                .HasMaxLength(300);
-
-            builder
-                .Property(x => x.email)
-                .IsRequired()
-                .HasColumnName("email")
-                .HasColumnType("nvarchar")
-                .HasMaxLength(100);
-
-            builder
-                .Property(x => x.telefono)
-                .IsRequired()
-                .HasColumnName("telefono")
-                .HasColumnType("nvarchar")
-                .HasMaxLength(50);
-
-            builder
                 .Property(x => x.empresaId)
                 .IsRequired()
                 .HasColumnName("empresaId")
                 .HasColumnType("int");
+
+            builder
+                .Property(x => x.dominioCrmId)
+                .IsRequired()
+                .HasColumnName("dominioCrmId")
+                .HasColumnType("nvarchar")
+                .HasMaxLength(20);
 
             builder
                 .Property(x => x.dominio)
@@ -52,9 +34,9 @@ namespace api.DataAccess.Configurators
                 .HasMaxLength(20);
 
             builder
-                .Property(x => x.departamento)
+                .Property(x => x.departamentoCrmId)
                 .IsRequired()
-                .HasColumnName("departamento")
+                .HasColumnName("departamentoCrmId")
                 .HasColumnType("nvarchar")
                 .HasMaxLength(50);
 
