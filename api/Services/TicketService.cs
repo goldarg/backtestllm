@@ -151,7 +151,7 @@ namespace api.Services
             var uri = new StringBuilder(
                 "crm/v2/Purchase_Orders?fields=Tracking_Number,PO_Number,"
                     + "Estado_OT_Mirai_fleet,Clasificaci_n,Vehiculo,Cliente,Product_Details,Aprobador,"
-                    + "Vendor_Name,Solicitante,Estado_de_presupuesto"
+                    + "Vendor_Name,Solicitante,Estado_de_presupuesto,Status,Created_Time"
             );
 
             var json = await _crmService.Get(uri.ToString());
@@ -171,9 +171,10 @@ namespace api.Services
                 {
                     ordenesTrabajo = ordenesTrabajo
                         .Where(x =>
-                            estadosValidos.Contains(x.estadoOT)
+                            estadosValidos.Contains(x.estadoGeneral)
                             && empresasDisponibles.Contains(x.Cliente?.id)
                         )
+                        .OrderByDescending(x => x.fechaCreacion)
                         .ToList();
                 }
             }
