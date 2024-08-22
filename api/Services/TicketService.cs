@@ -46,10 +46,7 @@ namespace api.Services
                     $"El usuario no tiene asignada la empresa con el idCRM {ticketDto.empresaCrmId}."
                 );
 
-            // TODO DESACTIVADO FALLAN CAMPOS AL CREAR EN RDA, ESTAN AVISADOS
-            //var (idTiquetera, ticketNumber) = await CrearTicketTiquetera(ticketDto);
-            string idTiquetera = Guid.NewGuid().ToString();
-            string ticketNumber = idTiquetera;
+            var (idTiquetera, ticketNumber) = await CrearTicketTiquetera(ticketDto);
 
             var ticket = new Ticket
             {
@@ -86,12 +83,15 @@ namespace api.Services
                 classification = ticketDto.tipoOperacion,
                 contact = new { email = ticketDto.email },
                 accountId = ticketDto.empresaCrmId,
-                cf_dominio = ticketDto.dominioCrmId,
-                cf_zona = ticketDto.zona,
-                cf_odometro = ticketDto.odometro,
-                cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
-                cf_turno_alternativa_2 = ticketDto.turnoOpcion2,
-                description = ticketDto.descripcion
+                description = ticketDto.descripcion,
+                cf = new
+                {
+                    cf_dominio = ticketDto.dominioCrmId,
+                    cf_zona = ticketDto.zona,
+                    cf_odometro = ticketDto.odometro,
+                    cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
+                    cf_turno_alternativa_2 = ticketDto.turnoOpcion2,
+                }
             };
 
             var httpClientTiquetera = _httpClientFactory.CreateClient("TiqueteraHttpClient");
