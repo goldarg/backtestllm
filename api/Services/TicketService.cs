@@ -46,7 +46,11 @@ namespace api.Services
                     $"El usuario no tiene asignada la empresa con el idCRM {ticketDto.empresaCrmId}."
                 );
 
-            var (idTiquetera, ticketNumber) = await CrearTicketTiquetera(ticketDto);
+            // TODO DESACTIVADO FALLAN CAMPOS AL CREAR EN RDA, ESTAN AVISADOS
+            //var (idTiquetera, ticketNumber) = await CrearTicketTiquetera(ticketDto);
+            string idTiquetera = Guid.NewGuid().ToString();
+            string ticketNumber = idTiquetera;
+
             var ticket = new Ticket
             {
                 empresaId = empresa.id,
@@ -82,12 +86,11 @@ namespace api.Services
                 classification = ticketDto.tipoOperacion,
                 contact = new { email = ticketDto.email },
                 accountId = ticketDto.empresaCrmId,
-                // TODO validar con daiana rda esto no existe en tiquetera
-                //cf_dominio = ticketDto.dominioCrmId,
-                //cf_zona = ticketDto.zona,
-                //cf_odometro = ticketDto.odometro,
-                //cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
-                //cf_turno_alternativa_2 = ticketDto.turnoOpcion2,
+                cf_dominio = ticketDto.dominioCrmId,
+                cf_zona = ticketDto.zona,
+                cf_odometro = ticketDto.odometro,
+                cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
+                cf_turno_alternativa_2 = ticketDto.turnoOpcion2,
                 description = ticketDto.descripcion
             };
 
@@ -122,11 +125,12 @@ namespace api.Services
 
         private string GenerarAsunto(TicketDto ticketDto)
         {
-            return ticketDto.dominio
-                + "-"
-                + ticketDto.empresaNombre
-                + "-"
-                + ticketDto.tipoOperacion;
+            return "TEST NICOLAS - ENTA - NO TOCAR";
+            //return ticketDto.dominio
+            //    + "-"
+            //    + ticketDto.empresaNombre
+            //    + "-"
+            //    + ticketDto.tipoOperacion;
         }
 
         public async Task<List<OrdenTrabajoDto>> GetOrdenesDeTrabajo()
