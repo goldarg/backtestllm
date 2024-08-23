@@ -10,17 +10,7 @@ using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder
-    .Services.AddControllers()
-    .AddNewtonsoftJson(options =>
-    {
-        options.SerializerSettings.ContractResolver =
-            new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
-        options.SerializerSettings.MissingMemberHandling = Newtonsoft
-            .Json
-            .MissingMemberHandling
-            .Error;
-    });
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
