@@ -14,6 +14,8 @@ builder
     .Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
+        options.SerializerSettings.ContractResolver =
+            new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
         options.SerializerSettings.MissingMemberHandling = Newtonsoft
             .Json
             .MissingMemberHandling
