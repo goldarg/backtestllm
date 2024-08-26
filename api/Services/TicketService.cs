@@ -210,5 +210,37 @@ namespace api.Services
 
             return tickets;
         }
+
+        public async Task<List<OrdenTrabajoDto>> GetOTEnCurso()
+        {
+            var OTs = await GetOrdenesDeTrabajo();
+            var result = new List<OrdenTrabajoDto>();
+
+            foreach (var group in OTs.GroupBy(ot => ot.numeroTicket))
+            {
+                if (group.All(ot => ot.estadoOT == "Completado" || ot.estadoOT == "Cancelado"))
+                {
+                    result.AddRange(group);
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<List<OrdenTrabajoDto>> GetOTHistorial()
+        {
+            var OTs = await GetOrdenesDeTrabajo();
+            var result = new List<OrdenTrabajoDto>();
+
+            foreach (var group in OTs.GroupBy(ot => ot.numeroTicket))
+            {
+                if (!group.All(ot => ot.estadoOT == "Completado" || ot.estadoOT == "Cancelado"))
+                {
+                    result.AddRange(group);
+                }
+            }
+
+            return result;
+        }
     }
 }

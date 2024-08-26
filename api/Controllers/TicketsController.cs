@@ -31,6 +31,20 @@ public class TicketsController : ControllerBase
         return Ok(await _ticketService.GetOrdenesDeTrabajo());
     }
 
+    [HttpGet("GetOTEnCurso")]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA,CONDUCTOR")]
+    public async Task<IActionResult> GetOTEnCurso()
+    {
+        return Ok(await _ticketService.GetOTEnCurso());
+    }
+
+    [HttpGet("GetOTHistorial")]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA,CONDUCTOR")]
+    public async Task<IActionResult> GetOTHistorial()
+    {
+        return Ok(await _ticketService.GetOTHistorial());
+    }
+
     [HttpGet]
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
     public async Task<IActionResult> GetTickets() => Ok(await _ticketService.GetTickets());

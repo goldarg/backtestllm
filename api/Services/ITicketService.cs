@@ -8,5 +8,7 @@ namespace api.Services
         Task<List<TicketDtoResponse>?> GetTickets();
         Task CrearTicket(TicketDto ticket);
         Task<List<OrdenTrabajoDto>> GetOrdenesDeTrabajo();
+        Task<List<OrdenTrabajoDto>> GetOTEnCurso();
+        Task<List<OrdenTrabajoDto>> GetOTHistorial();
     }
 }

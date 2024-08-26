@@ -216,7 +216,7 @@ public class VehiculoService(
             "crm/v2/Purchase_Orders/search?criteria=(Vehiculo.name:equals:"
                 + dominio
                 + ")"
-                + "&fields=id,Clasificaciones,Vehiculo,Product_Details,Vendor_Name,Turno,Status,PO_Number"
+                + "&fields=id,Clasificaciones,Vehiculo,Product_Details,Vendor_Name,Turno,Estado_OT_Mirai_fleet,PO_Number"
         );
 
         json = await _crmService.Get(uri.ToString());
@@ -233,6 +233,7 @@ public class VehiculoService(
                 Estado = o.Estado,
                 OT = o.OT
             })
+            .Where(x => x.Estado == "Completado")
             .ToList();
 
         return response;
