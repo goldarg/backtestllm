@@ -218,7 +218,7 @@ namespace api.Services
 
             foreach (var group in OTs.GroupBy(ot => ot.numeroTicket))
             {
-                if (group.All(ot => ot.estadoOT == "Completado" || ot.estadoOT == "Cancelado"))
+                if (!group.All(ot => ot.estadoOT == "Completado" || ot.estadoOT == "Cancelado"))
                 {
                     result.AddRange(group);
                 }
@@ -234,7 +234,7 @@ namespace api.Services
 
             foreach (var group in OTs.GroupBy(ot => ot.numeroTicket))
             {
-                if (!group.All(ot => ot.estadoOT == "Completado" || ot.estadoOT == "Cancelado"))
+                if (group.All(ot => ot.estadoOT == "Completado" || ot.estadoOT == "Cancelado"))
                 {
                     result.AddRange(group);
                 }
