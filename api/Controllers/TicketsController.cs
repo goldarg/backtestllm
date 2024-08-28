@@ -46,6 +46,6 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA")]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA,CONDUCTOR")]
     public async Task<IActionResult> GetTickets() => Ok(await _ticketService.GetTickets());
 }
