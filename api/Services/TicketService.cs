@@ -76,6 +76,7 @@ namespace api.Services
         {
             var ticketTiquetera = new
             {
+                channel = "Mirai Fleet",
                 email = ticketDto.email,
                 phone = ticketDto.telefono,
                 subject = GenerarAsunto(ticketDto),
@@ -86,7 +87,7 @@ namespace api.Services
                 description = ticketDto.descripcion,
                 cf = new
                 {
-                    cf_dominio = ticketDto.dominioCrmId,
+                    cf_dominio = ticketDto.dominio,
                     cf_zona = ticketDto.zona,
                     cf_odometro = ticketDto.odometro,
                     cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
