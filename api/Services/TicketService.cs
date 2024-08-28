@@ -188,6 +188,27 @@ namespace api.Services
 
         public async Task<List<TicketDtoResponse>?> GetTickets()
         {
+            if (_userIdentityService.UsuarioPoseeRol("CONDUCTOR"))
+            {
+                return _unitOfWork
+                    .GetRepository<Ticket>()
+                    .GetAll()
+                    .Where(x => x.Solicitante.idCRM == _userIdentityService.UserGetCrmId())
+                    .Select(x => new TicketDtoResponse
+                    {
+                        numeroTicket = x.numeroTicket,
+                        tipoOperacion = x.tipoOperacion,
+                        dominio = new CRMRelatedObject { id = x.dominioCrmId, name = x.dominio },
+                        solicitante = new UserDtoResponse
+                        {
+                            id = x.Solicitante.idCRM,
+                            first_name = x.Solicitante.nombre,
+                            last_name = x.Solicitante.apellido
+                        }
+                    })
+                    .ToList();
+            }
+
             var empresasUsuario = _userIdentityService.ListarEmpresasDelUsuario();
 
             var tickets = _unitOfWork
