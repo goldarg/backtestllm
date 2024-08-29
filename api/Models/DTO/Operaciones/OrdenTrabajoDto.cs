@@ -4,6 +4,12 @@ namespace api.Models.DTO.Operaciones
 {
     public class OrdenTrabajoDto
     {
+        [JsonProperty("id")]
+        public string? id { get; set; }
+
+        [JsonProperty("Conductor_VH")]
+        public string? conductor { get; set; }
+
         [JsonProperty("Tracking_Number")]
         public string? numeroTicket { get; set; }
 
@@ -32,7 +38,7 @@ namespace api.Models.DTO.Operaciones
         public CRMRelatedObject? Taller { get; set; }
 
         [JsonProperty("Solicitante")]
-        public CRMRelatedObject? conductor { get; set; }
+        public CRMRelatedObject? Solicitante { get; set; }
 
         [JsonProperty("Estado_de_presupuesto")]
         public string? presupuesto { get; set; }
