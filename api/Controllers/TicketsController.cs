@@ -48,4 +48,15 @@ public class TicketsController : ControllerBase
     [HttpGet]
     [Authorize(Roles = "SUPERADMIN,ADMIN,RDA,CONDUCTOR")]
     public async Task<IActionResult> GetTickets() => Ok(await _ticketService.GetTickets());
+
+    [HttpGet("GetDetalleOT")]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA,CONDUCTOR")]
+    public async Task<IActionResult> GetDetalleOT(
+        string otCrmId,
+        string conductorCrmId,
+        string vehiculoCrmId
+    )
+    {
+        return Ok(await _ticketService.GetDetalleOT(otCrmId, conductorCrmId, vehiculoCrmId));
+    }
 }

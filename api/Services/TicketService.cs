@@ -31,6 +31,52 @@ namespace api.Services
             _httpClientFactory = httpClientFactory;
         }
 
+        public async Task<OrdenTrabajoDetalleDto> GetDetalleOT(
+            string otCrmId,
+            string conductorCrmId,
+            string vehiculoCrmId
+        )
+        {
+            //Traigo datos del usuario
+            var empresasDisponibles = _userIdentityService.ListarEmpresasDelUsuario();
+            var userCrmId = _userIdentityService.UserGetCrmId();
+
+            //Datos de la OT
+            var uri = new StringBuilder(
+                $"crm/v2/Purchase_Orders/{otCrmId}?fields=id,PO_Number,Estado_OT_Mirai_fleet,Turno,Vendor_Name,"
+                    + "Clasificaciones,Tracking_Number,Fecha_de_Aprobaci_n,Estado_de_presupuesto,Vehiculo,"
+                    + "Od_metro,Aprobador,Solicitante,Cliente,Departamento,Created_Time,Grand_Total,"
+                    + "Product_Details,Domicilio_Completo,Motivo_de_rechazo_OT"
+            );
+            var json = await _crmService.Get(uri.ToString());
+            var ordenTrabajoDto = JsonConvert
+                .DeserializeObject<List<OrdenTrabajoDetalleDto>>(json)
+                .First();
+
+            //Datos del vehiculo
+            uri = new StringBuilder(
+                $"crm/v2/Vehiculos/{vehiculoCrmId}?fields=id,"
+                    + "Versi_n,Marca_Vehiculo,Modelo,Pa_s,Name"
+            );
+            json = await _crmService.Get(uri.ToString());
+            var datosVehiculoDto = JsonConvert
+                .DeserializeObject<List<DatosDominioDto>>(json)
+                .First();
+            ordenTrabajoDto.Dominio = datosVehiculoDto;
+
+            //Datos del conductor
+            uri = new StringBuilder(
+                $"crm/v2/Contacts/{conductorCrmId}?fields=id,Full_Name,Email,Phone"
+            );
+            json = await _crmService.Get(uri.ToString());
+            var datosConductorDto = JsonConvert
+                .DeserializeObject<List<DatosConductorDto>>(json)
+                .First();
+            ordenTrabajoDto.Conductor = datosConductorDto;
+
+            return ordenTrabajoDto;
+        }
+
         public async Task CrearTicket(TicketDto ticketDto)
         {
             // revisar si el usuario tiene asignada la empresa
@@ -169,7 +215,7 @@ namespace api.Services
                 if (_userIdentityService.UsuarioPoseeRol("CONDUCTOR"))
                 {
                     ordenesTrabajo = ordenesTrabajo
-                        .Where(x => x.conductor.id == userCrmId)
+                        .Where(x => x.Solicitante.id == userCrmId)
                         .ToList();
                 }
                 else //Admin y SuperAdmin filtran segun las empresas que tengan asignadas, aunque fueran todas
