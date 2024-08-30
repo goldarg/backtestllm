@@ -5,6 +5,7 @@ using api.Exceptions;
 using api.Models.DTO;
 using api.Models.DTO.Operaciones;
 using api.Models.DTO.Tiquetera;
+using api.Models.DTO.User;
 using api.Models.Entities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -202,11 +203,29 @@ namespace api.Services
             var uri = new StringBuilder(
                 "crm/v2/Purchase_Orders?fields=Tracking_Number,PO_Number,"
                     + "Estado_OT_Mirai_fleet,Clasificaci_n,Vehiculo,Cliente,Product_Details,Aprobador,"
-                    + "Vendor_Name,Solicitante,Estado_de_presupuesto,Status,Created_Time"
+                    + "Vendor_Name,Solicitante,Estado_de_presupuesto,Status,Created_Time,Conductor_VH"
             );
 
             var json = await _crmService.Get(uri.ToString());
             var ordenesTrabajo = JsonConvert.DeserializeObject<List<OrdenTrabajoDto>>(json);
+
+            //La foto del conductor al crear la OT se guarda solo como string (name)
+            //Entonces con ese dato busco los datos de los que me interesan y luego los mappeo
+            uri = new StringBuilder("/crm/v2/contacts?fields=Full_Name,id");
+            json = await _crmService.Get(uri.ToString());
+            var conductoresCrm = JsonConvert.DeserializeObject<List<UserFullNameDto>>(json);
+            var conductoresDict = conductoresCrm.ToDictionary(c => c.Full_Name, c => c);
+
+            var result = ordenesTrabajo //TODO el nombre no es unico, RDA tiene que definir con que campo identificar al conductor
+                .Select(orden =>
+                {
+                    if (conductoresDict.TryGetValue(orden.conductor, out var conductorData))
+                    {
+                        orden.ConductorData = conductorData;
+                    }
+                    return orden;
+                })
+                .ToList();
 
             //RDA puede ver todo sin filtrado
             if (!_userIdentityService.UsuarioPoseeRol("RDA"))
@@ -214,13 +233,11 @@ namespace api.Services
                 //Si es conductor, solamente puede ver los propios
                 if (_userIdentityService.UsuarioPoseeRol("CONDUCTOR"))
                 {
-                    ordenesTrabajo = ordenesTrabajo
-                        .Where(x => x.Solicitante.id == userCrmId)
-                        .ToList();
+                    result = result.Where(x => x.Solicitante.id == userCrmId).ToList();
                 }
                 else //Admin y SuperAdmin filtran segun las empresas que tengan asignadas, aunque fueran todas
                 {
-                    ordenesTrabajo = ordenesTrabajo
+                    result = result
                         .Where(x =>
                             estadosValidos.Contains(x.estadoGeneral)
                             && empresasDisponibles.Contains(x.Cliente?.id)
@@ -230,7 +247,7 @@ namespace api.Services
                 }
             }
 
-            return ordenesTrabajo;
+            return result;
         }
 
         public async Task<List<TicketDtoResponse>?> GetTickets()

@@ -1,3 +1,4 @@
+using api.Models.DTO.User;
 using Newtonsoft.Json;
 
 namespace api.Models.DTO.Operaciones
@@ -39,6 +40,8 @@ namespace api.Models.DTO.Operaciones
 
         [JsonProperty("Solicitante")]
         public CRMRelatedObject? Solicitante { get; set; }
+
+        public UserFullNameDto? ConductorData { get; set; }
 
         [JsonProperty("Estado_de_presupuesto")]
         public string? presupuesto { get; set; }
