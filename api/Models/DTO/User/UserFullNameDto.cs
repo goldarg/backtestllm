@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 
 namespace api.Models.DTO.User
 {
-    public class UserFullNameDto
+    public class UserSummaryDto
     {
         public string? id { get; set; }
+        public string? email { get; set; }
         public string? Full_Name { get; set; }
     }
 }
