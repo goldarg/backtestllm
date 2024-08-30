@@ -48,6 +48,9 @@ builder.Services.AddHttpClient(
     }
 );
 
+// cliente vacio para hacer consultas a cualquier API
+builder.Services.AddHttpClient("SimpleHttpClient");
+
 builder.Services.AddDbContext<RdaDbContext>(options =>
 {
     options.UseLazyLoadingProxies();
