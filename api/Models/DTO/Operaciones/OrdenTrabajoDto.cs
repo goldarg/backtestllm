@@ -1,3 +1,4 @@
+using api.Models.DTO.User;
 using Newtonsoft.Json;
 
 namespace api.Models.DTO.Operaciones
@@ -7,8 +8,8 @@ namespace api.Models.DTO.Operaciones
         [JsonProperty("id")]
         public string? id { get; set; }
 
-        [JsonProperty("Conductor_VH")]
-        public string? conductor { get; set; }
+        [JsonProperty("Correo_conductor_VH")]
+        public string? emailConductor { get; set; }
 
         [JsonProperty("Tracking_Number")]
         public string? numeroTicket { get; set; }
@@ -39,6 +40,8 @@ namespace api.Models.DTO.Operaciones
 
         [JsonProperty("Solicitante")]
         public CRMRelatedObject? Solicitante { get; set; }
+
+        public UserSummaryDto? ConductorData { get; set; }
 
         [JsonProperty("Estado_de_presupuesto")]
         public string? presupuesto { get; set; }
