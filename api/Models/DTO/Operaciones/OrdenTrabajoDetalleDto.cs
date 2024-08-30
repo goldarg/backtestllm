@@ -111,7 +111,7 @@ namespace api.Models.DTO.Operaciones
         [JsonProperty("product")]
         public DetalleProductDto producto { get; set; }
 
-        [JsonProperty("unit_price")]
+        [JsonProperty("list_price")]
         public double? precioPorUnidad { get; set; }
 
         [JsonProperty("quantity")]
