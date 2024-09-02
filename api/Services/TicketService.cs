@@ -13,6 +13,7 @@ using Newtonsoft.Json.Linq;
 namespace api.Services
 {
     public class TicketService(
+        IHostEnvironment env,
         IUserIdentityService userIdentityService,
         IRdaUnitOfWork unitOfWork,
         CRMService crmService,
@@ -20,6 +21,7 @@ namespace api.Services
         IHttpClientFactory httpClientFactory
     ) : ITicketService
     {
+        private readonly IHostEnvironment _env = env;
         private readonly IUserIdentityService _userIdentityService = userIdentityService;
         private readonly IRdaUnitOfWork _unitOfWork = unitOfWork;
         private readonly CRMService _crmService = crmService;
@@ -321,12 +323,13 @@ namespace api.Services
 
         private string GenerarAsunto(TicketDto ticketDto)
         {
-            return "TEST NICOLAS - ENTA - NO TOCAR";
-            //return ticketDto.dominio
-            //    + "-"
-            //    + ticketDto.empresaNombre
-            //    + "-"
-            //    + ticketDto.tipoOperacion;
+            if (_env.IsDevelopment())
+                return "TEST NICOLAS - ENTA - NO TOCAR";
+            return ticketDto.dominio
+                + "-"
+                + ticketDto.empresaNombre
+                + "-"
+                + ticketDto.tipoOperacion;
         }
 
         private async Task<(string id, string ticketNumber)> CrearTicketTiquetera(
