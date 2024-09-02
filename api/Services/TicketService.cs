@@ -12,25 +12,19 @@ using Newtonsoft.Json.Linq;
 
 namespace api.Services
 {
-    public class TicketService : ITicketService
+    public class TicketService(
+        IUserIdentityService userIdentityService,
+        IRdaUnitOfWork unitOfWork,
+        CRMService crmService,
+        TiqueteraService tiqueteraService,
+        IHttpClientFactory httpClientFactory
+    ) : ITicketService
     {
-        private readonly IUserIdentityService _userIdentityService;
-        private readonly IRdaUnitOfWork _unitOfWork;
-        private readonly CRMService _crmService;
-        private readonly IHttpClientFactory _httpClientFactory;
-
-        public TicketService(
-            IUserIdentityService userIdentityService,
-            IRdaUnitOfWork unitOfWork,
-            CRMService crmService,
-            IHttpClientFactory httpClientFactory
-        )
-        {
-            _userIdentityService = userIdentityService;
-            _unitOfWork = unitOfWork;
-            _crmService = crmService;
-            _httpClientFactory = httpClientFactory;
-        }
+        private readonly IUserIdentityService _userIdentityService = userIdentityService;
+        private readonly IRdaUnitOfWork _unitOfWork = unitOfWork;
+        private readonly CRMService _crmService = crmService;
+        private readonly TiqueteraService _tiqueteraService = tiqueteraService;
+        private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
 
         public async Task<OrdenTrabajoDetalleDto> GetDetalleOT(
             string otCrmId,
@@ -115,70 +109,6 @@ namespace api.Services
 
             _unitOfWork.GetRepository<Ticket>().Insert(ticket);
             _unitOfWork.SaveChanges();
-        }
-
-        private async Task<(string id, string ticketNumber)> CrearTicketTiquetera(
-            TicketDto ticketDto
-        )
-        {
-            var ticketTiquetera = new
-            {
-                channel = "Mirai Fleet",
-                email = ticketDto.email,
-                phone = ticketDto.telefono,
-                subject = GenerarAsunto(ticketDto),
-                departmentId = ticketDto.departamentoCrmId,
-                classification = ticketDto.tipoOperacion,
-                contact = new { email = ticketDto.email },
-                accountId = ticketDto.empresaCrmId,
-                description = ticketDto.descripcion,
-                cf = new
-                {
-                    cf_dominio = ticketDto.dominio,
-                    cf_zona = ticketDto.zona,
-                    cf_odometro = ticketDto.odometro,
-                    cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
-                    cf_turno_alternativa_2 = ticketDto.turnoOpcion2,
-                }
-            };
-
-            var httpClientTiquetera = _httpClientFactory.CreateClient("TiqueteraHttpClient");
-            string jsonTicket = JsonConvert.SerializeObject(ticketTiquetera);
-            var content = new StringContent(
-                jsonTicket,
-                System.Text.Encoding.UTF8,
-                "application/json"
-            );
-
-            var response = await httpClientTiquetera.PostAsync("tickets", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            var jsonResponse = JObject.Parse(responseContent);
-
-            if (!jsonResponse.ContainsKey("id"))
-                throw new Exception("No se pudo crear el ticket en Tiquetera.");
-
-            var idValue = jsonResponse["id"]?.ToString();
-            var ticketNumber = jsonResponse["ticketNumber"]?.ToString();
-
-            if (idValue == null)
-                throw new Exception("La propiedad 'id' no se encontró o es nula en la respuesta.");
-            if (ticketNumber == null)
-                throw new Exception(
-                    "La propiedad 'ticketNumber' no se encontró o es nula en la respuesta."
-                );
-
-            return (idValue, ticketNumber);
-        }
-
-        private string GenerarAsunto(TicketDto ticketDto)
-        {
-            return "TEST NICOLAS - ENTA - NO TOCAR";
-            //return ticketDto.dominio
-            //    + "-"
-            //    + ticketDto.empresaNombre
-            //    + "-"
-            //    + ticketDto.tipoOperacion;
         }
 
         public async Task<List<OrdenTrabajoDto>> GetOrdenesDeTrabajo()
@@ -327,5 +257,132 @@ namespace api.Services
 
             return result;
         }
+
+        public async Task<IEnumerable<HistorialTicketDto?>> GetHistorialTicket(string idTiquetera)
+        {
+            ValidateTicketAccess(idTiquetera);
+
+            var json = await _tiqueteraService.Get($"tickets/{idTiquetera}/conversations");
+            var historial = JsonConvert.DeserializeObject<List<HistorialTicketZohoDto>>(json);
+
+            // filtrar y convertir a HistorialTicketZohoDto
+            // para filtrar hay que asegurarse que el campo visibility sea "public" y el campo status sea "SUCCESS"
+            if (historial == null)
+            {
+                return [];
+            }
+            var rta = historial
+                .Where(x => x.Visibility == "public" && x.Status == "SUCCESS")
+                .Select(x => new HistorialTicketDto
+                {
+                    Id = x.Id,
+                    Resumen = x.Resumen,
+                    Contenido = x.Contenido,
+                    FechaCreacion = x.FechaCreacion,
+                    Remitente = x.Autor.Email
+                });
+
+            return rta;
+        }
+
+        #region private methods
+        private void ValidateTicketAccess(string idTiquetera)
+        {
+            bool canViewTicket = false;
+            // si es conductor, entonces hay que revisar que puede ver dicho ticket
+            if (_userIdentityService.UsuarioPoseeRol("CONDUCTOR"))
+            {
+                canViewTicket = _unitOfWork
+                    .GetRepository<Ticket>()
+                    .GetAll()
+                    .Where(x =>
+                        x.Solicitante.idCRM == _userIdentityService.UserGetCrmId()
+                        && x.idTiquetera == idTiquetera
+                    )
+                    .Any();
+            }
+            else
+            {
+                // para todos los demas, hay  que revisar si la empresa del ticket es una de las asignadas al usuario
+                var empresasUsuario = _userIdentityService.ListarEmpresasDelUsuario();
+                canViewTicket = _unitOfWork
+                    .GetRepository<Ticket>()
+                    .GetAll()
+                    .Where(x =>
+                        empresasUsuario.Contains(x.Empresa.idCRM) && x.idTiquetera == idTiquetera
+                    )
+                    .Any();
+            }
+            if (!canViewTicket)
+            {
+                throw new UnauthorizedException("No tiene permisos para ver este ticket.");
+            }
+        }
+
+        private string GenerarAsunto(TicketDto ticketDto)
+        {
+            return "TEST NICOLAS - ENTA - NO TOCAR";
+            //return ticketDto.dominio
+            //    + "-"
+            //    + ticketDto.empresaNombre
+            //    + "-"
+            //    + ticketDto.tipoOperacion;
+        }
+
+        private async Task<(string id, string ticketNumber)> CrearTicketTiquetera(
+            TicketDto ticketDto
+        )
+        {
+            var ticketTiquetera = new
+            {
+                channel = "Mirai Fleet",
+                email = ticketDto.email,
+                phone = ticketDto.telefono,
+                subject = GenerarAsunto(ticketDto),
+                departmentId = ticketDto.departamentoCrmId,
+                classification = ticketDto.tipoOperacion,
+                contact = new { email = ticketDto.email },
+                accountId = ticketDto.empresaCrmId,
+                description = ticketDto.descripcion,
+                cf = new
+                {
+                    cf_dominio = ticketDto.dominio,
+                    cf_zona = ticketDto.zona,
+                    cf_odometro = ticketDto.odometro,
+                    cf_turno_alternativa_1 = ticketDto.turnoOpcion1,
+                    cf_turno_alternativa_2 = ticketDto.turnoOpcion2,
+                }
+            };
+
+            var httpClientTiquetera = _httpClientFactory.CreateClient("TiqueteraHttpClient");
+            string jsonTicket = JsonConvert.SerializeObject(ticketTiquetera);
+            var content = new StringContent(
+                jsonTicket,
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await httpClientTiquetera.PostAsync("tickets", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            var jsonResponse = JObject.Parse(responseContent);
+
+            if (!jsonResponse.ContainsKey("id"))
+                throw new Exception("No se pudo crear el ticket en Tiquetera.");
+
+            var idValue = jsonResponse["id"]?.ToString();
+            var ticketNumber = jsonResponse["ticketNumber"]?.ToString();
+
+            if (idValue == null)
+                throw new Exception("La propiedad 'id' no se encontró o es nula en la respuesta.");
+            if (ticketNumber == null)
+                throw new Exception(
+                    "La propiedad 'ticketNumber' no se encontró o es nula en la respuesta."
+                );
+
+            return (idValue, ticketNumber);
+        }
+
+        #endregion
     }
 }

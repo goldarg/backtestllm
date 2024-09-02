@@ -15,5 +15,6 @@ namespace api.Services
             string conductorCrmId,
             string vehiculoCrmId
         );
+        Task<IEnumerable<HistorialTicketDto?>> GetHistorialTicket(string idTiquetera);
     }
 }
