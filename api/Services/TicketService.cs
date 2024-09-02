@@ -16,12 +16,14 @@ namespace api.Services
         IUserIdentityService userIdentityService,
         IRdaUnitOfWork unitOfWork,
         CRMService crmService,
+        TiqueteraService tiqueteraService,
         IHttpClientFactory httpClientFactory
     ) : ITicketService
     {
         private readonly IUserIdentityService _userIdentityService = userIdentityService;
         private readonly IRdaUnitOfWork _unitOfWork = unitOfWork;
         private readonly CRMService _crmService = crmService;
+        private readonly TiqueteraService _tiqueteraService = tiqueteraService;
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
 
         public async Task<OrdenTrabajoDetalleDto> GetDetalleOT(
@@ -256,12 +258,67 @@ namespace api.Services
             return result;
         }
 
-        public Task<object?> GetHistorialTicket(string ticketCrmId)
+        public async Task<IEnumerable<HistorialTicketDto?>> GetHistorialTicket(string idTiquetera)
         {
-            throw new NotImplementedException();
+            ValidateTicketAccess(idTiquetera);
+
+            var json = await _tiqueteraService.Get($"tickets/{idTiquetera}/conversations");
+            var historial = JsonConvert.DeserializeObject<List<HistorialTicketZohoDto>>(json);
+
+            // filtrar y convertir a HistorialTicketZohoDto
+            // para filtrar hay que asegurarse que el campo visibility sea "public" y el campo status sea "SUCCESS"
+            if (historial == null)
+            {
+                return [];
+            }
+            var rta = historial
+                .Where(x => x.Visibility == "public" && x.Status == "SUCCESS")
+                .Select(x => new HistorialTicketDto
+                {
+                    Id = x.Id,
+                    Resumen = x.Resumen,
+                    Contenido = x.Contenido,
+                    FechaCreacion = x.FechaCreacion,
+                    Remitente = x.Autor.Email
+                });
+
+            return rta;
         }
 
         #region private methods
+        private void ValidateTicketAccess(string idTiquetera)
+        {
+            bool canViewTicket = false;
+            // si es conductor, entonces hay que revisar que puede ver dicho ticket
+            if (_userIdentityService.UsuarioPoseeRol("CONDUCTOR"))
+            {
+                canViewTicket = _unitOfWork
+                    .GetRepository<Ticket>()
+                    .GetAll()
+                    .Where(x =>
+                        x.Solicitante.idCRM == _userIdentityService.UserGetCrmId()
+                        && x.idTiquetera == idTiquetera
+                    )
+                    .Any();
+            }
+            else
+            {
+                // para todos los demas, hay  que revisar si la empresa del ticket es una de las asignadas al usuario
+                var empresasUsuario = _userIdentityService.ListarEmpresasDelUsuario();
+                canViewTicket = _unitOfWork
+                    .GetRepository<Ticket>()
+                    .GetAll()
+                    .Where(x =>
+                        empresasUsuario.Contains(x.Empresa.idCRM) && x.idTiquetera == idTiquetera
+                    )
+                    .Any();
+            }
+            if (!canViewTicket)
+            {
+                throw new UnauthorizedException("No tiene permisos para ver este ticket.");
+            }
+        }
+
         private string GenerarAsunto(TicketDto ticketDto)
         {
             return "TEST NICOLAS - ENTA - NO TOCAR";
