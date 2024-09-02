@@ -59,4 +59,11 @@ public class TicketsController : ControllerBase
     {
         return Ok(await _ticketService.GetDetalleOT(otCrmId, conductorCrmId, vehiculoCrmId));
     }
+
+    [HttpGet("historialTicket")]
+    [Authorize(Roles = "SUPERADMIN,ADMIN,RDA,CONDUCTOR")]
+    public async Task<IActionResult> GetHistorialTicket(string ticketCrmId)
+    {
+        return Ok(await _ticketService.GetHistorialTicket(ticketCrmId));
+    }
 }

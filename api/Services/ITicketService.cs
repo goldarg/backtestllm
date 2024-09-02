@@ -15,5 +15,6 @@ namespace api.Services
             string conductorCrmId,
             string vehiculoCrmId
         );
+        Task<object?> GetHistorialTicket(string ticketCrmId);
     }
 }
